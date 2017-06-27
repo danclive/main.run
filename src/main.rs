@@ -9,6 +9,10 @@ extern crate lazy_static;
 use sincere::Micro;
 use mon::client::Client;
 
+use error::Result;
+
+mod error;
+
 lazy_static! {
     /// This is an example for using doc comment attributes
     static ref DBCLIENT: Client = {
@@ -16,7 +20,7 @@ lazy_static! {
     };
 }
 
-fn start() {
+fn start() -> Result<()> {
 	let mut app = Micro::new();
 
 	app.get("/", |_request, _response| {
@@ -26,11 +30,13 @@ fn start() {
 
 	});
 
-	app.run("0.0.0.0:8000").unwrap();
+	app.run("0.0.0.0:8000")?;
+
+    Ok(())
 }
 
 fn main() {
     println!("Hello, world!");
 
-    start();
+    start().unwrap();
 }
