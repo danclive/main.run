@@ -4,7 +4,11 @@ version = "0.1.0"
 authors = ["dangcheng <dangcheng@hotmail.com>"]
 
 [dependencies]
-sincere = "0.2"
+#sincere = "0.2"
+sincere = { path = "../sincere" }
 sincere_token = "0.1"
 mon = "0.1"
 lazy_static = "0.2"
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
