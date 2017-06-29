@@ -1,5 +1,5 @@
 use sincere_token::{self, Message, Algorithm};
-use chrono::{UTC, DateTime};
+use chrono::{Utc, DateTime};
 
 use error::Result;
 use error::ErrorCode;
@@ -16,7 +16,7 @@ struct Token {
 impl Message for Token {}
 
 pub fn generate_token(user_id: String) -> Result<String> {
-	let utc: DateTime<UTC> = UTC::now();
+	let utc: DateTime<Utc> = Utc::now();
 
 	let token = Token {
 		user_id: user_id,
@@ -29,7 +29,7 @@ pub fn generate_token(user_id: String) -> Result<String> {
 }
 
 pub fn verify_token(token: String, expiration_time: i64) -> Result<String> {
-	let utc: DateTime<UTC> = UTC::now();
+	let utc: DateTime<Utc> = Utc::now();
 
 	let token = sincere_token::decode::<Token>(KEY, token)?;
 
