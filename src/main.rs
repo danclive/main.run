@@ -1,5 +1,6 @@
 extern crate sincere;
 extern crate sincere_token;
+#[macro_use]
 extern crate mon;
 #[macro_use]
 extern crate lazy_static;
@@ -7,23 +8,27 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+extern crate ring;
+extern crate chrono;
 
 use std::thread;
 
 use sincere::Micro;
 use sincere::Group;
 use mon::client::Client;
+use mon::db::Database;
 
 use error::Result;
 
 mod error;
 mod user;
 mod common;
+mod util;
 
 lazy_static! {
     /// This is an example for using doc comment attributes
-    static ref DBCLIENT: Client = {
-    	Client::with_uri("mongodb://localhost:27017").expect("Failed to initialize client.")
+    static ref DB: Database = {
+    	Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
@@ -49,8 +54,8 @@ fn start() -> Result<()> {
 
 	app.get("/", |_request, _response| {
 
-		let db = DBCLIENT.db("test");
-		println!("{:?}", db.version());
+		//let db = DBCLIENT.db("test");
+		//println!("{:?}", db.version());
 
 	});
 

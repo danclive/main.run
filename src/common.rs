@@ -21,6 +21,14 @@ pub struct Response<D: Serialize> {
 pub struct Null;
 
 impl<D: Serialize> Response<D> {
+    pub fn success() -> Response<D> {
+        Response {
+            success: true,
+            message: None,
+            data: None,
+        }
+    }
+
     pub fn from_data(data: D) -> Response<D> {
         Response {
             success: true,
@@ -44,12 +52,14 @@ impl<D: Serialize> Response<D> {
                     info: format!("{}", err),
                 }
             }
+            
             _ => {
                 Message {
                     code: 0,
                     info: "未知错误".to_owned(),
                 }
             }
+            
         };
 
         Response {
