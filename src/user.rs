@@ -11,6 +11,8 @@ use error::ErrorCode;
 
 pub fn list(request: &mut Request, response: &mut Response) {
     println!("{:?}", request.path());
+    println!("{:?}", request.querys());
+    println!("{:?}", request.get_query("aaaa"));
     response.from_text("Hello Sincere").unwrap();
 }
 

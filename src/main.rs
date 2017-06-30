@@ -79,7 +79,7 @@ fn start() -> Result<()> {
 
 	let mut user_group = Group::new("/user");
 
-	user_group.get("/", user::list);
+	user_group.get("/{id:[a-z0-9]{24}}", user::list);
 	user_group.post("/login", user::login);
 	user_group.post("/logon", user::logon);
 
