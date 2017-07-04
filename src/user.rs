@@ -26,7 +26,6 @@ struct Login {
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 struct LoginReturn {
-    user_id: String,
     token: String,
 }
 
@@ -55,7 +54,6 @@ pub fn login(request: &mut Request, response: &mut Response) {
                 let token = token::generate_token(id.clone())?;
 
                 let login_return = LoginReturn {
-                    user_id: id,
                     token: token,
                 };
 
@@ -77,5 +75,5 @@ pub fn login(request: &mut Request, response: &mut Response) {
 
 pub fn logon(request: &mut Request, response: &mut Response) {
     println!("{:?}", request.path());
-    response.from_text("Hello Sincere").unwrap();
+    response.from_text("user logon").unwrap();
 }
