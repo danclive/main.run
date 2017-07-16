@@ -1,4 +1,4 @@
-//use std::error::Error as stdError;
+use std::error::Error as stdError;
 
 use serde::Serialize;
 
@@ -49,7 +49,7 @@ impl<D: Serialize> Response<D> {
             Error::Sincere(_) => {
                 Message {
                     code: 0,
-                    info: format!("{}", err),
+                    info: err.description().to_owned(),
                 }
             }
             

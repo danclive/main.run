@@ -52,10 +52,12 @@ struct Messages {
 fn start() -> Result<()> {
 	let mut app = Micro::new();
 
-	app.get("/", |_request, _response| {
+	app.post("/", |request, _response| {
 
 		//let db = DBCLIENT.db("test");
 		//println!("{:?}", db.version());
+
+        println!("{:?}", String::from_utf8(request.data().to_vec()));
 
 	});
 
@@ -86,7 +88,7 @@ fn start() -> Result<()> {
 	app.mount(user_group);
 
 
-	app.run("0.0.0.0:8000")?;
+	app.run("0.0.0.0:8000", 4)?;
 
     Ok(())
 }
