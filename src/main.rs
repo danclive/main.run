@@ -52,11 +52,13 @@ struct Messages {
 fn start() -> Result<()> {
 	let mut app = Micro::new();
 
-	app.get("/", |_request, _response| {
+	app.get("/", |_request, response| {
 
 		//let db = DBCLIENT.db("test");
 		//println!("{:?}", db.version());
+		//println!("{:?}", request.headers());
 
+		response.from_text("hello world!").unwrap();
 	});
 
 /*
@@ -86,7 +88,7 @@ fn start() -> Result<()> {
 	app.mount(user_group);
 
 
-	app.run("0.0.0.0:8000")?;
+	app.run("0.0.0.0:8000", 8)?;
 
     Ok(())
 }
@@ -96,5 +98,13 @@ fn main() {
 
     thread::spawn(|| {
     	start().unwrap();
+
+    	loop {
+    		match start() {
+    			Ok(_) => (),
+    			Err(_) => continue
+    		}
+    	}
     }).join().unwrap();
+
 }

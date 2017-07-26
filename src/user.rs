@@ -3,11 +3,19 @@ use sincere::Response;
 use ring::digest::{self, SHA256};
 //use mon::util::hex::ToHex;
 use mon::bson::spec::BinarySubtype;
+use mon::oid::ObjectId;
 
-use common::{Response as JsonResponse, Null};
+use common::{Response as JsonResponse, Empty};
 use DB;
 use util::token;
 use error::ErrorCode;
+
+#[allow(dead_code)]
+struct User {
+    id: ObjectId,
+    username: String,
+    avatar: String
+}
 
 pub fn list(request: &mut Request, response: &mut Response) {
     println!("{:?}", request.path());
@@ -68,7 +76,7 @@ pub fn login(request: &mut Request, response: &mut Response) {
             response.from_json(result).unwrap();
         },
         Err(err) => {
-            response.from_json(JsonResponse::<Null>::from_error(err)).unwrap();
+            response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
         }
     }
 }
