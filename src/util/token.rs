@@ -5,6 +5,7 @@ use error::Result;
 use error::ErrorCode;
 
 const KEY: &str = "key";
+const EXPIRATION_TIME: i64 = 60 * 60 * 24 * 30;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
@@ -28,12 +29,12 @@ pub fn generate_token(user_id: String) -> Result<String> {
 	Ok(token)
 }
 
-pub fn verify_token(token: String, expiration_time: i64) -> Result<String> {
+pub fn verify_token(token: String) -> Result<String> {
 	let utc: DateTime<Utc> = Utc::now();
 
 	let token = sincere_token::decode::<Token>(KEY, token)?;
 
-	if token.date + expiration_time < utc.timestamp() {
+	if token.date + EXPIRATION_TIME < utc.timestamp() {
 		return Err(ErrorCode(20001).into())
 	}
 

@@ -13,7 +13,7 @@ extern crate chrono;
 
 use std::thread;
 
-use sincere::Micro;
+use sincere::App;
 use sincere::Group;
 use mon::client::Client;
 use mon::db::Database;
@@ -50,7 +50,7 @@ struct Messages {
 
 
 fn start() -> Result<()> {
-	let mut app = Micro::new();
+	let mut app = App::new();
 
 	app.get("/", |_request, response| {
 
@@ -81,7 +81,8 @@ fn start() -> Result<()> {
 
 	let mut user_group = Group::new("/user");
 
-	user_group.get("/{id:[a-z0-9]{24}}", user::list);
+	//user_group.get("/{id:[a-z0-9]{24}}", user::list);
+    user_group.get("/list", user::list);
 	user_group.post("/login", user::login);
 	user_group.post("/logon", user::logon);
 
@@ -97,8 +98,6 @@ fn main() {
     println!("Hello, world!");
 
     thread::spawn(|| {
-    	start().unwrap();
-
     	loop {
     		match start() {
     			Ok(_) => (),
@@ -108,3 +107,21 @@ fn main() {
     }).join().unwrap();
 
 }
+
+/*
+use chrono::offset::TimeZone;
+
+fn main() {
+    let a = chrono::Utc::now();
+
+    println!("{:?}", a);
+
+    let b = a.with_timezone(&chrono::Local);
+
+    println!("{:?}", b);
+
+    let c = chrono::Local::now();
+
+    println!("{:?}", c);
+}
+*/
