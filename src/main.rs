@@ -52,12 +52,11 @@ struct Messages {
 fn start() -> Result<()> {
 	let mut app = Micro::new();
 
-	app.post("/", |request, _response| {
+	app.get("/", |_request, response| {
 
 		//let db = DBCLIENT.db("test");
 		//println!("{:?}", db.version());
-
-        println!("{:?}", String::from_utf8(request.data().to_vec()));
+        response.from_text("hello hahaha").unwrap();
 
 	});
 
