@@ -46,10 +46,14 @@ impl<D: Serialize> Response<D> {
                 }
             }
             Error::IoError(_) |
-            Error::Sincere(_) => {
+            Error::Sincere(_) |
+            Error::MonError(_) |
+            Error::DocError(_) |
+            Error::BsonEncodeError(_) => {
                 Message {
                     code: 0,
                     info: err.description().to_owned(),
+                    //info: format!("{}", err),
                 }
             }
             

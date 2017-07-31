@@ -32,11 +32,9 @@ struct User {
 */
 pub fn list(context: &mut Context) {
 
-    if let Some(token) = context.request.get_header("token") {
-        let ok = token::verify_token(token);
+    let id = context.contexts.get("id");
 
-        println!("{:?}", ok);
-    }
+    println!("{:?}", id);
 
     context.response.from_text("Hello Sincere").unwrap();
 }
