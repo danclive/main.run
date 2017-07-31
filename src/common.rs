@@ -18,7 +18,7 @@ pub struct Response<D: Serialize> {
 }
 
 #[derive(Serialize, Debug)]
-pub struct Null;
+pub struct Empty;
 
 impl<D: Serialize> Response<D> {
     pub fn success() -> Response<D> {

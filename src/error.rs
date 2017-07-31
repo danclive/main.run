@@ -6,6 +6,7 @@ use std::error;
 use sincere;
 use mon;
 use mon::bson::doc;
+use mon::bson::encode::EncodeError;
 use sincere_token;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -18,6 +19,7 @@ pub enum Error {
     MonError(mon::Error),
     TokenError(sincere_token::Error),
     DocError(doc::Error),
+    BsonEncodeError(EncodeError)
 }
 
 impl From<io::Error> for Error {
@@ -56,6 +58,12 @@ impl From<doc::Error> for Error {
     }
 }
 
+impl From<EncodeError> for Error {
+    fn from(err: EncodeError) -> Error {
+        Error::BsonEncodeError(err)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -65,6 +73,7 @@ impl fmt::Display for Error {
             Error::MonError(ref inner) => inner.fmt(fmt),
             Error::TokenError(ref inner) => inner.fmt(fmt),
             Error::DocError(ref inner) => inner.fmt(fmt),
+            Error::BsonEncodeError(ref inner) => inner.fmt(fmt),
         }
     }
 }
@@ -78,6 +87,7 @@ impl error::Error for Error {
             Error::MonError(ref err) => err.description(),
             Error::TokenError(ref err) => err.description(),
             Error::DocError(ref err) => err.description(),
+            Error::BsonEncodeError(ref err) => err.description(),
         }
     }
 
@@ -89,6 +99,7 @@ impl error::Error for Error {
             Error::MonError(ref err) => Some(err),
             Error::TokenError(ref err) => Some(err),
             Error::DocError(ref err) => Some(err),
+            Error::BsonEncodeError(ref err) => Some(err),
         }
     }
 }
@@ -101,6 +112,7 @@ impl ErrorCode {
         match self.0 {
             20001 => "登录信息已过期",
             20002 => "用户名或密码错误",
+            20003 => "用户已存在",
             _ => "未知错误"
         }
     }
