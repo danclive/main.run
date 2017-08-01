@@ -108,8 +108,8 @@ pub fn logon(context: &mut Context) {
     let user_col = DB.collection("user");
 
     let result = context.request.bind_json::<Logon>()
-        .map_err(|err| err.into() ).
-        and_then(|result| {
+        .map_err(|err| err.into() )
+        .and_then(|result| {
 
             let doc = doc!{
                 "username" => (result.username.clone())

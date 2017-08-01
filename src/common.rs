@@ -1,4 +1,4 @@
-use std::error::Error as stdError;
+//use std::error::Error as stdError;
 
 use serde::Serialize;
 
@@ -52,8 +52,8 @@ impl<D: Serialize> Response<D> {
             Error::BsonEncodeError(_) => {
                 Message {
                     code: 0,
-                    info: err.description().to_owned(),
-                    //info: format!("{}", err),
+                    //info: err.description().to_owned(),
+                    info: format!("{}", err),
                 }
             }
             

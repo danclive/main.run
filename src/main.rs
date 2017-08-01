@@ -87,8 +87,7 @@ fn start() -> Result<()> {
 
 	let mut user_group = Group::new("/user");
 
-	//user_group.get("/{id:[a-z0-9]{24}}", user::list);
-    user_group.get("/list", user::list).before(middleware::auth);
+    user_group.get("/", user::list).before(middleware::auth);
 	user_group.post("/login", user::login);
 	user_group.post("/logon", user::logon);
 
@@ -97,19 +96,19 @@ fn start() -> Result<()> {
     let mut article_group = Group::new("/article");
 
     //article_group.before(middleware::auth);
-    article_group.get("/list", article::list);
+    article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
-    article_group.post("/", article::new);
-    article_group.put("/", article::commit);
+    article_group.post("/", article::new).before(middleware::auth);
+    article_group.put("/{id:[a-z0-9]{24}}", article::commit);
 
     app.mount(article_group);
 
     let mut collect_group = Group::new("/collect");
 
-    collect_group.get("/list", collect::list);
+    collect_group.get("/", collect::list);
     collect_group.get("/{id:[a-z0-9]{24}}", collect::detail);
     collect_group.post("/", collect::new);
-    collect_group.put("/", collect::commit);
+    collect_group.put("/{id:[a-z0-9]{24}}", collect::commit);
 
     app.mount(collect_group);
 
