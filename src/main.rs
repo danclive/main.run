@@ -35,7 +35,7 @@ lazy_static! {
     };
 }
 
-/*
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 //#[serde(deny_unknown_fields)]
@@ -48,7 +48,7 @@ struct Messages {
     #[serde(default)]
     message: Option<(String, String)>,
 }
-*/
+
 
 
 
@@ -57,8 +57,7 @@ fn start() -> Result<()> {
 
 	app.get("/", |context| {
 
-		//let db = DBCLIENT.db("test");
-		//println!("{:?}", db.version());
+		println!("{:?}", DB.version());
 		context.response.from_text("hello world!").unwrap();
 	}).before(|_context| {
         println!("{:?}", "before");
@@ -67,9 +66,9 @@ fn start() -> Result<()> {
         println!("{:?}", "after");
     });
 
-/*
-	app.post("/test", |request, response| {
-		let message = request.bind_json::<Messages>();
+
+	app.post("/test", |context| {
+		let message = context.request.bind_json::<Messages>();
 
 		println!("{:?}", message);
 
@@ -79,11 +78,11 @@ fn start() -> Result<()> {
 			message: None
 		};
 
-		let result = response.from_json(a);
+		let result = context.response.from_json(a);
 
 		println!("{:?}", result);
 	});
-*/
+
 
 	let mut user_group = Group::new("/user");
 
@@ -95,7 +94,7 @@ fn start() -> Result<()> {
 
     let mut article_group = Group::new("/article");
 
-    //article_group.before(middleware::auth);
+    article_group.before(middleware::auth);
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
     article_group.post("/", article::new).before(middleware::auth);

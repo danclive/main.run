@@ -58,31 +58,36 @@ struct New {
 }
 
 pub fn new(context: &mut Context) {
-	if let Some(_id) = context.contexts.get("id") {
-		let result = context.request.bind_json::<New>()
-			.map_err(|err| err.into() )
-			.and_then(|result| {
+	let _id = context.contexts.get("id").unwrap();
+
+	let result = context.request.bind_json::<New>()
+		.map_err(|err| err.into() )
+		.and_then(|result| {
 				
-				println!("{:?}", result.title);
-				println!("{:?}", result.content);
+			println!("{:?}", result.title);
+			println!("{:?}", result.content);
 
-				Ok(())
-			});
+			Ok(())
+		});
 
-
-		match result {
-	        Ok(result) => {
-	            context.response.from_json(result).unwrap();
-	        },
-	        Err(err) => {
-	            context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
-	        }
+	match result {
+	    Ok(result) => {
+	        context.response.from_json(result).unwrap();
+	    },
+	    Err(err) => {
+	        context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
 	    }
 	}
 }
 
-pub fn commit(context: &mut Context) {
-	if let Some(_id) = context.request.get_param("id") {
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+struct Commit {
+	id: i64,
+	title: String,
+	content: String
+}
 
-	}
+pub fn commit(context: &mut Context) {
+	let _id = context.contexts.get("id").unwrap();
 }
