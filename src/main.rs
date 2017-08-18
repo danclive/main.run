@@ -53,12 +53,17 @@ struct Messages {
 
 
 fn start() -> Result<()> {
+
 	let mut app = App::new();
 
 	app.get("/", |context| {
 
-		println!("{:?}", DB.version());
+        //println!("{:?}", DB.create_user("aaa", "bbb", None));
+
+        //println!("{:?}", DB.auth("aaa", "bbb"));
+
 		context.response.from_text("hello world!").unwrap();
+
 	}).before(|_context| {
         println!("{:?}", "before");
     
@@ -78,9 +83,7 @@ fn start() -> Result<()> {
 			message: None
 		};
 
-		let result = context.response.from_json(a);
-
-		println!("{:?}", result);
+		context.response.from_json(a).unwrap();
 	});
 
 
@@ -95,10 +98,11 @@ fn start() -> Result<()> {
     let mut article_group = Group::new("/article");
 
     article_group.before(middleware::auth);
+
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
     article_group.post("/", article::new).before(middleware::auth);
-    article_group.put("/{id:[a-z0-9]{24}}", article::commit);
+    article_group.put("/{id:[a-z0-9]{24}}", article::commit).before(middleware::auth);
 
     app.mount(article_group);
 
@@ -111,9 +115,10 @@ fn start() -> Result<()> {
 
     app.mount(collect_group);
 
+    middleware::cors(&mut app);
 
-
-	app.run("0.0.0.0:8000", 8)?;
+	app.run("0.0.0.0:8000", 4)?;
+    //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
 
     Ok(())
 }

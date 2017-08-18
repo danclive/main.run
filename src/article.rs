@@ -67,6 +67,10 @@ pub fn new(context: &mut Context) {
 			println!("{:?}", result.title);
 			println!("{:?}", result.content);
 
+			let sections: Vec<&str> = result.content.split('\n').collect();
+
+			println!("{:?}", sections);
+
 			Ok(())
 		});
 
