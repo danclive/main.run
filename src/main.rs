@@ -57,14 +57,9 @@ fn start() -> Result<()> {
 
 	app.get("/", |context| {
 
-		println!("{:?}", DB.version());
+		//println!("{:?}", DB.version());
 		context.response.from_text("hello world!").unwrap();
-	}).before(|_context| {
-        println!("{:?}", "before");
-    
-    }).after(|_context| {
-        println!("{:?}", "after");
-    });
+	});
 
 
 	app.post("/test", |context| {
