@@ -9,7 +9,7 @@ use chrono::Utc;
 
 use DB;
 use common::{Response as JsonResponse, Empty};
-//use error::ErrorCode;
+use error::ErrorCode;
 
 #[allow(dead_code)]
 struct Collect {
@@ -83,6 +83,7 @@ pub fn new(context: &mut Context) {
         let release = doc!{
             "_id" => (ObjectId::new().unwrap()),
             "article_id" => (article_id),
+            "owner_id" => (ObjectId::with_string(id).unwrap()),
             "content" => (new_json.content),
             "create_at" => (bson::Bson::from(Utc::now()))
         };
@@ -109,11 +110,60 @@ pub fn new(context: &mut Context) {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 struct Commit {
-    id: i64,
-    title: String,
+    //id: String,
     content: String
 }
 
 pub fn commit(context: &mut Context) {
-    let _id = context.contexts.get("id").unwrap();
+    let id = context.contexts.get("id").unwrap();
+
+    let request = &mut context.request;
+
+    let article_col = DB.collection("article");
+    let release_col = DB.collection("release");
+
+    let mut result = || {
+
+        let article_id = request.get_query("id").unwrap();
+
+        let commit_json = request.bind_json::<Commit>()?;
+
+        let article_find = doc!{
+            "_id" => (article_id.clone())
+        };
+
+        let find_result = article_col.find_one(Some(article_find), None)?;
+
+        if let None = find_result {
+            return Err(ErrorCode(20002).into());
+        }
+
+        let article_doc = find_result.unwrap();
+
+
+        let release = doc!{
+            "_id" => (ObjectId::new().unwrap()),
+            "article_id" => (article_id),
+            "owner_id" => (ObjectId::with_string(id).unwrap()),
+            "content" => (commit_json.content),
+            "create_at" => (bson::Bson::from(Utc::now()))
+        };
+
+        let insert_result = release_col.insert_one(release, None)?;
+
+        if let Some(exception) = insert_result.write_exception {
+            return Err(mon::error::Error::WriteError(exception).into());
+        }
+
+        Ok(JsonResponse::<Empty>::success())
+    };
+
+    match result() {
+        Ok(result) => {
+            context.response.from_json(result).unwrap();
+        },
+        Err(err) => {
+            context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
+        }
+    }
 }
