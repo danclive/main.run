@@ -105,51 +105,44 @@ struct Logon {
 
 pub fn logon(context: &mut Context) {
     
+    let request = &context.request;
+
     let user_col = DB.collection("user");
 
-    let result = context.request.bind_json::<Logon>()
-        .map_err(|err| err.into() )
-        .and_then(|result| {
+    let result = || {
+        
+        let logon_json = request.bind_json::<Logon>()?;
 
-            let doc = doc!{
-                "username" => (result.username.clone())
-            };
+        let doc = doc!{
+            "username" => (logon_json.username.clone())
+        };
 
-            if let Some(_) = user_col.find_one(Some(doc), None)? {
-                return Err(ErrorCode(20003).into());
-            }
+        if let Some(_) = user_col.find_one(Some(doc), None)? {
+            return Err(ErrorCode(20003).into());
+        }
 
+        let actual = digest::digest(&SHA256, logon_json.password.as_bytes());
 
-            Ok(result)
-        }).
-        and_then(|result| {
+        let doc = doc!{
+            "_id" => (ObjectId::new().unwrap()),
+            "username" => (logon_json.username),
+            "password" => (BinarySubtype::Generic, actual.as_ref().to_vec()),
+            "avatar" => "",
+            "role" => "Guest",
+            "create_at" => (bson::Bson::from(Utc::now())),
+            "update_at" => (bson::Bson::from(Utc::now()))
+        };
 
-            let actual = digest::digest(&SHA256, result.password.as_bytes());
+        let insert_result = user_col.insert_one(doc, None)?;
 
-            let doc = doc!{
-                "_id" => (ObjectId::new().unwrap()),
-                "username" => (result.username),
-                "password" => (BinarySubtype::Generic, actual.as_ref().to_vec()),
-                "avatar" => "",
-                "role" => "Guest",
-                "create_at" => (bson::Bson::from(Utc::now())),
-                "update_at" => (bson::Bson::from(Utc::now()))
-            };
+        if let Some(exception) = insert_result.write_exception {
+            return Err(mon::error::Error::WriteError(exception).into());
+        }
 
-            Ok(user_col.insert_one(doc, None)?)
-        }).and_then(|result| {
-            if !result.acknowledged {
-                return Err(ErrorCode(20002).into());
-            }
+        Ok(JsonResponse::<Empty>::success())
+    };
 
-            if let Some(exception) = result.write_exception {
-                return Err(mon::error::Error::WriteError(exception).into());
-            }
-
-            Ok(JsonResponse::<Empty>::success())
-        });
-
-    match result {
+    match result() {
         Ok(result) => {
             context.response.from_json(result).unwrap();
         },

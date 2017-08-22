@@ -7,7 +7,8 @@ authors = ["dangcheng <dangcheng@hotmail.com>"]
 #sincere = "0.2"
 sincere = { path = "../sincere" }
 sincere_token = "0.1"
-mon = "0.1"
+#mon = "<=0.1.11"
+mon = { path = "../mon" }
 lazy_static = "0.2"
 serde = "1.0"
 serde_json = "1.0"
