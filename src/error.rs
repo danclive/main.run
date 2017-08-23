@@ -110,6 +110,7 @@ pub struct ErrorCode(pub u16);
 impl ErrorCode {
     pub fn to_str(&self) -> &str {
         match self.0 {
+            10004 => "资源不存在",
             20001 => "登录信息已过期",
             20002 => "用户名或密码错误",
             20003 => "用户已存在",

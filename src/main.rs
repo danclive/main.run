@@ -5,6 +5,7 @@ extern crate mon;
 #[macro_use]
 extern crate lazy_static;
 extern crate serde;
+#[macro_use]
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
@@ -93,7 +94,7 @@ fn start() -> Result<()> {
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
     article_group.post("/", article::new).before(middleware::auth);
-    article_group.put("/{id:[a-z0-9]{24}}", article::commit).before(middleware::auth);
+    article_group.put("/{id:[a-z0-9]{24}}/release", article::commit).before(middleware::auth);
 
     app.mount(article_group);
 
