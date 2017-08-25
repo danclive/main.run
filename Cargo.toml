@@ -11,7 +11,10 @@ sincere_token = "0.1"
 mon = { path = "../mon" }
 lazy_static = "0.2"
 serde = "1.0"
-serde_json = "1.0"
 serde_derive = "1.0"
 ring = "0.11"
 chrono = "0.4"
+
+[dependencies.serde_json]
+version = "1.0"
+features = ["preserve_order"]

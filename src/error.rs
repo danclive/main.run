@@ -2,6 +2,7 @@ use std::result;
 use std::io;
 use std::fmt;
 use std::error;
+use std::num;
 
 use sincere;
 use mon;
@@ -19,7 +20,8 @@ pub enum Error {
     MonError(mon::Error),
     TokenError(sincere_token::Error),
     DocError(doc::Error),
-    BsonEncodeError(EncodeError)
+    BsonEncodeError(EncodeError),
+    ParseIntError(num::ParseIntError),
 }
 
 impl From<io::Error> for Error {
@@ -64,6 +66,12 @@ impl From<EncodeError> for Error {
     }
 }
 
+impl From<num::ParseIntError> for Error {
+    fn from(err: num::ParseIntError) -> Error {
+        Error::ParseIntError(err)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -74,6 +82,7 @@ impl fmt::Display for Error {
             Error::TokenError(ref inner) => inner.fmt(fmt),
             Error::DocError(ref inner) => inner.fmt(fmt),
             Error::BsonEncodeError(ref inner) => inner.fmt(fmt),
+            Error::ParseIntError(ref inner) => inner.fmt(fmt),
         }
     }
 }
@@ -88,6 +97,7 @@ impl error::Error for Error {
             Error::TokenError(ref err) => err.description(),
             Error::DocError(ref err) => err.description(),
             Error::BsonEncodeError(ref err) => err.description(),
+            Error::ParseIntError(ref err) => err.description(),
         }
     }
 
@@ -100,6 +110,7 @@ impl error::Error for Error {
             Error::TokenError(ref err) => Some(err),
             Error::DocError(ref err) => Some(err),
             Error::BsonEncodeError(ref err) => Some(err),
+            Error::ParseIntError(ref err) => Some(err),
         }
     }
 }

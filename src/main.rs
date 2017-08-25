@@ -89,7 +89,7 @@ fn start() -> Result<()> {
 
     let mut article_group = Group::new("/article");
 
-    article_group.before(middleware::auth);
+    //article_group.before(middleware::auth);
 
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);

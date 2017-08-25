@@ -1,11 +1,16 @@
+use std::i64;
+use std::str::FromStr;
+
 use sincere::Context;
 
 use mon;
 use mon::bson::{self, Bson};
 use mon::oid::ObjectId;
 use mon::bson::bson::UTCDateTime;
+use mon::coll::options::FindOptions;
 
 use chrono::Utc;
+use chrono::Local;
 
 use DB;
 use common::{Response as JsonResponse, Empty};
@@ -38,19 +43,75 @@ struct Release {
 }
 
 pub fn list(context: &mut Context) {
-    if let Some(_id) = context.contexts.get("id") {
+    let page = context.request.get_query("page").unwrap_or("1".to_owned());
+    let per_page = context.request.get_query("per_page").unwrap_or("10".to_owned());
 
+    let article_col = DB.collection("article");
+
+    let result = || {
+        
+        let page = i64::from_str(&page)?;
+        let per_page = i64::from_str(&per_page)?;
+
+        let mut article_find_option = FindOptions::default();
+
+        article_find_option.sort = Some(doc!{
+            "_id" => (-1)
+        });
+
+        article_find_option.limit = Some(per_page);
+        article_find_option.skip = Some((page - 1) * per_page);
+
+        let article_doc_find = article_col.find(None, Some(article_find_option))?;
+
+        let mut articles = Vec::new();
+
+        for item in article_doc_find {
+            let article = item?;
+
+            articles.push(json!({
+                "Id": article.get_object_id("_id")?.to_string(),
+                "Title": article.get_str("title").unwrap_or_default(),
+                "OwnerIds": article.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+                "AttendIds": article.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+                "CreateAt": article.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+                "UpdateAt": article.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
+            }));
+        }
+
+        let article_doc_count = article_col.count(None, None)?;
+
+        let return_json = json!({
+            "Articles": articles,
+            "Count": article_doc_count
+        });
+
+        Ok(JsonResponse::from_data(return_json))
+    };
+
+    match result() {
+        Ok(result) => {
+            context.response.from_json(result).unwrap();
+        },
+        Err(err) => {
+            context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
+        }
     }
 }
 
 pub fn detail(context: &mut Context) {
     let id = context.request.get_param("id").unwrap();
+    let page = context.request.get_query("page").unwrap_or("1".to_owned());
+    let per_page = context.request.get_query("per_page").unwrap_or("10".to_owned());
 
     let article_col = DB.collection("article");
     let release_col = DB.collection("release");
 
     let result = || {
         
+        let page = i64::from_str(&page)?;
+        let per_page = i64::from_str(&per_page)?;
+
         let article_find = doc!{
             "_id" => (ObjectId::with_string(&id).unwrap())
         };
@@ -63,9 +124,45 @@ pub fn detail(context: &mut Context) {
 
         let article_doc = article_doc_find.unwrap();
 
-        
+        let release_find = doc!{
+            "article_id" => (ObjectId::with_string(&id).unwrap())
+        };
 
-        Ok(JsonResponse::<Empty>::success())
+        let mut release_find_option = FindOptions::default();
+
+        release_find_option.sort = Some(doc!{
+            "_id" => (-1)
+        });
+
+        release_find_option.limit = Some(per_page);
+        release_find_option.skip = Some((page - 1) * per_page);
+
+        let release_doc_find = release_col.find(Some(release_find), Some(release_find_option))?;
+        
+        let mut releases = Vec::new();
+
+        for item in release_doc_find {
+            let release = item?;
+
+            releases.push(json!({
+                "Id": release.get_object_id("_id")?.to_string(),
+                "OwnerId": release.get_object_id("owner_id")?.to_string(),
+                "Content": release.get_str("content").unwrap_or_default(),
+                "CreateAt": release.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+            }));
+        }
+
+        let return_json = json!({
+            "Id": id,
+            "Title": article_doc.get_str("title").unwrap_or_default(),
+            "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+            "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+            "CreateAt": article_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+            "UpdateAt": article_doc.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+            "Release": releases
+        });
+
+        Ok(JsonResponse::from_data(return_json))
     };
 
     match result() {

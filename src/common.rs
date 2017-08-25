@@ -5,12 +5,14 @@ use serde::Serialize;
 use error::Error;
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct Message {
     code: u16,
     info: String,
 }
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct Response<D: Serialize> {
     success: bool,
     message: Option<Message>,
@@ -49,7 +51,8 @@ impl<D: Serialize> Response<D> {
             Error::Sincere(_) |
             Error::MonError(_) |
             Error::DocError(_) |
-            Error::BsonEncodeError(_) => {
+            Error::BsonEncodeError(_) |
+            Error::ParseIntError(_) => {
                 Message {
                     code: 0,
                     //info: err.description().to_owned(),
