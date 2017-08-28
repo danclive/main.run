@@ -113,7 +113,7 @@ pub fn detail(context: &mut Context) {
         let per_page = i64::from_str(&per_page)?;
 
         let article_find = doc!{
-            "_id" => (ObjectId::with_string(&id).unwrap())
+            "_id" => (ObjectId::with_string(&id)?)
         };
 
         let article_doc_find = article_col.find_one(Some(article_find), None)?;
@@ -125,7 +125,7 @@ pub fn detail(context: &mut Context) {
         let article_doc = article_doc_find.unwrap();
 
         let release_find = doc!{
-            "article_id" => (ObjectId::with_string(&id).unwrap())
+            "article_id" => (ObjectId::with_string(&id)?)
         };
 
         let mut release_find_option = FindOptions::default();
@@ -175,6 +175,70 @@ pub fn detail(context: &mut Context) {
     }
 }
 
+pub fn detail_and_release(context: &mut Context) {
+    let id = context.request.get_param("id").unwrap();
+    let id2 = context.request.get_param("id2").unwrap();
+
+    let article_col = DB.collection("article");
+    let release_col = DB.collection("release");
+
+    let result = || {
+
+        let article_find = doc!{
+            "_id" => (ObjectId::with_string(&id)?)
+        };
+
+        let article_doc_find = article_col.find_one(Some(article_find), None)?;
+
+        if let None = article_doc_find {
+            return Err(ErrorCode(10004).into());
+        }
+
+        let article_doc = article_doc_find.unwrap();
+
+        let release_find = doc!{
+            "_id" => (ObjectId::with_string(&id2)?),
+            "article_id" => (ObjectId::with_string(&id)?)
+        };
+
+        let release_doc_find = release_col.find_one(Some(release_find), None)?;
+
+        if let None = release_doc_find {
+            return Err(ErrorCode(10004).into());
+        }
+
+        let release_doc = release_doc_find.unwrap();
+        
+        let release = json!({
+            "Id": release_doc.get_object_id("_id")?.to_string(),
+            "OwnerId": release_doc.get_object_id("owner_id")?.to_string(),
+            "Content": release_doc.get_str("content").unwrap_or_default(),
+            "CreateAt": release_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+        });
+
+        let return_json = json!({
+            "Id": id,
+            "Title": article_doc.get_str("title").unwrap_or_default(),
+            "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+            "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+            "CreateAt": article_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+            "UpdateAt": article_doc.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+            "Release": release
+        });
+
+        Ok(JsonResponse::from_data(return_json))
+    };
+
+    match result() {
+        Ok(result) => {
+            context.response.from_json(result).unwrap();
+        },
+        Err(err) => {
+            context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
+        }
+    }
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 struct New {
@@ -195,9 +259,9 @@ pub fn new(context: &mut Context) {
         let new_json = request.bind_json::<New>()?;
 
         let article = doc!{
-            "_id" => (ObjectId::new().unwrap()),
+            "_id" => (ObjectId::new()?),
             "title" => (new_json.title),
-            "owner_ids" => [ObjectId::with_string(id).unwrap()],
+            "owner_ids" => [ObjectId::with_string(id)?],
             "attend_ids" => [],
             "collect_ids" => [],
             "create_at" => (bson::Bson::from(Utc::now())),
@@ -207,9 +271,9 @@ pub fn new(context: &mut Context) {
         let article_id = article.get_object_id("_id").unwrap().clone();
 
         let release = doc!{
-            "_id" => (ObjectId::new().unwrap()),
+            "_id" => (ObjectId::new()?),
             "article_id" => (article_id.clone()),
-            "owner_id" => (ObjectId::with_string(id).unwrap()),
+            "owner_id" => (ObjectId::with_string(id)?),
             "content" => (new_json.content),
             "create_at" => (bson::Bson::from(Utc::now()))
         };
@@ -257,7 +321,7 @@ pub fn commit(context: &mut Context) {
         let commit_json = request.bind_json::<Commit>()?;
 
         let article_find = doc!{
-            "_id" => (ObjectId::with_string(&article_id).unwrap())
+            "_id" => (ObjectId::with_string(&article_id)?)
         };
 
         let find_result = article_col.find_one(Some(article_find), None)?;
@@ -273,22 +337,24 @@ pub fn commit(context: &mut Context) {
 
         let attend_ids_clone = &mut attend_ids.clone();
 
-        if let None = owner_ids.iter().find(|r| **r == Bson::ObjectId(ObjectId::with_string(id).unwrap()) ) {
-            if let None = attend_ids.iter().find(|r| **r == Bson::ObjectId(ObjectId::with_string(id).unwrap()) ) {
-                attend_ids_clone.push(Bson::ObjectId(ObjectId::with_string(id).unwrap()));
+        let user_id = ObjectId::with_string(id)?;
+
+        if let None = owner_ids.iter().find(|r| **r == Bson::ObjectId(user_id.clone()) ) {
+            if let None = attend_ids.iter().find(|r| **r == Bson::ObjectId(user_id.clone()) ) {
+                attend_ids_clone.push(Bson::ObjectId(user_id));
             }
         }
 
         let release = doc!{
-            "_id" => (ObjectId::new().unwrap()),
-            "article_id" => (ObjectId::with_string(&article_id).unwrap()),
-            "owner_id" => (ObjectId::with_string(id).unwrap()),
+            "_id" => (ObjectId::new()?),
+            "article_id" => (ObjectId::with_string(&article_id)?),
+            "owner_id" => (ObjectId::with_string(id)?),
             "content" => (commit_json.content),
             "create_at" => (bson::Bson::from(Utc::now()))
         };
 
         let article_update_filter = doc!{
-            "_id" => (ObjectId::with_string(&article_id).unwrap())
+            "_id" => (ObjectId::with_string(&article_id)?)
         };
 
         let article_update_update = doc!{

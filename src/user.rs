@@ -5,9 +5,10 @@ use mon;
 use mon::bson;
 use mon::bson::spec::BinarySubtype;
 use mon::oid::ObjectId;
-//use mon::bson::bson::UTCDateTime;
+use mon::coll::options::FindOptions;
 
 use chrono::Utc;
+use chrono::Local;
 
 use common::{Response as JsonResponse, Empty};
 use DB;
@@ -30,13 +31,51 @@ struct User {
     update_at: UTCDateTime,
 }
 */
-pub fn list(context: &mut Context) {
+pub fn detail(context: &mut Context) {
 
-    let id = context.contexts.get("id");
+    let id = context.contexts.get("id").unwrap();
 
-    println!("{:?}", id);
+    let user_col = DB.collection("user");
 
-    context.response.from_text("Hello Sincere").unwrap();
+    let result = || {
+
+        let user_find = doc!{
+            "_id" => (ObjectId::with_string(&id)?)
+        };
+
+        let mut user_find_option = FindOptions::default();
+
+        user_find_option.projection = Some(doc!{
+            "password" => 0
+        });
+
+        let user_doc_find = user_col.find_one(Some(user_find), Some(user_find_option))?;
+
+        if let None = user_doc_find {
+            return Err(ErrorCode(10004).into());
+        }
+
+        let user_doc = user_doc_find.unwrap();
+
+        let return_json = json!({
+            "Id": user_doc.get_object_id("_id")?.to_string(),
+            "Username": user_doc.get_str("username")?.to_string(),
+            "Avatar": user_doc.get_str("avatar")?.to_string(),
+            "Role": user_doc.get_str("role")?.to_string(),
+            "CreateAt": user_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
+        });
+
+        Ok(JsonResponse::from_data(return_json))
+    };
+
+    match result() {
+        Ok(result) => {
+            context.response.from_json(result).unwrap();
+        },
+        Err(err) => {
+            context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -46,47 +85,42 @@ struct Login {
     password: String,
 }
 
-#[derive(Serialize, Debug)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
-struct LoginReturn {
-    token: String,
-}
-
 pub fn login(context: &mut Context) {
 
-    let result = context.request.bind_json::<Login>()
-        .map_err(|err| err.into() )
-        .and_then(|result| {
+    let request = &context.request;
 
-            let user_col = DB.collection("user");
+    let user_col = DB.collection("user");
 
-            let actual = digest::digest(&SHA256, result.password.as_bytes());
+    let result = || {
+        
+        let login_json = request.bind_json::<Login>()?;
 
-            let doc = doc!{
-                "username" => (result.username),
-                "password" => (BinarySubtype::Generic, actual.as_ref().to_vec())
-            };
+        let actual = digest::digest(&SHA256, login_json.password.as_bytes());
 
-            Ok(user_col.find_one(Some(doc), None)?)
+        let doc = doc!{
+            "username" => (login_json.username),
+            "password" => (BinarySubtype::Generic, actual.as_ref().to_vec())
+        };
 
-        }).and_then(|result| {
-            match result {
-                Some(doc) => {
+        let user_doc_find = user_col.find_one(Some(doc), None)?;
 
-                    let id = doc.get_object_id("_id")?.to_hex();
-                    let token = token::generate_token(id.clone())?;
+        if let None = user_doc_find {
+            return Err(ErrorCode(20002).into())
+        }
 
-                    let login_return = LoginReturn {
-                        token: token,
-                    };
+        let user_doc = user_doc_find.unwrap();
 
-                    Ok(JsonResponse::from_data(login_return))
-                }
-                None => Err(ErrorCode(20002).into())
-            }
+        let id = user_doc.get_object_id("_id")?.to_string();
+        let token = token::generate_token(id)?;
+
+        let return_json = json!({
+            "Token": token
         });
 
-    match result {
+        Ok(JsonResponse::from_data(return_json))
+    };
+
+    match result() {
         Ok(result) => {
             context.response.from_json(result).unwrap();
         },

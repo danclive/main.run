@@ -81,7 +81,7 @@ fn start() -> Result<()> {
 
 	let mut user_group = Group::new("/user");
 
-    user_group.get("/", user::list).before(middleware::auth);
+    user_group.get("/", user::detail).before(middleware::auth);
 	user_group.post("/login", user::login);
 	user_group.post("/logon", user::logon);
 
@@ -93,6 +93,7 @@ fn start() -> Result<()> {
 
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
+    article_group.get("/{id:[a-z0-9]{24}}/release/{id2:[a-z0-9]{24}}", article::detail_and_release);
     article_group.post("/", article::new).before(middleware::auth);
     article_group.put("/{id:[a-z0-9]{24}}/release", article::commit).before(middleware::auth);
 
@@ -109,8 +110,8 @@ fn start() -> Result<()> {
 
     middleware::cors(&mut app);
 
-	app.run("0.0.0.0:8000", 4)?;
-    //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
+	//app.run("0.0.0.0:8000", 4)?;
+    app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
 
     Ok(())
 }

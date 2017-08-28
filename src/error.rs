@@ -8,6 +8,7 @@ use sincere;
 use mon;
 use mon::bson::doc;
 use mon::bson::encode::EncodeError;
+use mon::oid;
 use sincere_token;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -22,6 +23,7 @@ pub enum Error {
     DocError(doc::Error),
     BsonEncodeError(EncodeError),
     ParseIntError(num::ParseIntError),
+    ObjectIdError(oid::Error),
 }
 
 impl From<io::Error> for Error {
@@ -72,6 +74,12 @@ impl From<num::ParseIntError> for Error {
     }
 }
 
+impl From<oid::Error> for Error {
+    fn from(err: oid::Error) -> Error {
+        Error::ObjectIdError(err)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -83,6 +91,7 @@ impl fmt::Display for Error {
             Error::DocError(ref inner) => inner.fmt(fmt),
             Error::BsonEncodeError(ref inner) => inner.fmt(fmt),
             Error::ParseIntError(ref inner) => inner.fmt(fmt),
+            Error::ObjectIdError(ref inner) => inner.fmt(fmt),
         }
     }
 }
@@ -98,6 +107,7 @@ impl error::Error for Error {
             Error::DocError(ref err) => err.description(),
             Error::BsonEncodeError(ref err) => err.description(),
             Error::ParseIntError(ref err) => err.description(),
+            Error::ObjectIdError(ref err) => err.description(),
         }
     }
 
@@ -111,6 +121,7 @@ impl error::Error for Error {
             Error::DocError(ref err) => Some(err),
             Error::BsonEncodeError(ref err) => Some(err),
             Error::ParseIntError(ref err) => Some(err),
+            Error::ObjectIdError(ref err) => Some(err),
         }
     }
 }
