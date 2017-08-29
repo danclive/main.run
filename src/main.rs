@@ -110,8 +110,8 @@ fn start() -> Result<()> {
 
     middleware::cors(&mut app);
 
-	//app.run("0.0.0.0:8000", 4)?;
-    app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
+	app.run("0.0.0.0:8000", 4)?;
+    //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
 
     Ok(())
 }
