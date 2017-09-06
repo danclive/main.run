@@ -47,6 +47,7 @@ pub fn list(context: &mut Context) {
     let per_page = context.request.get_query("per_page").unwrap_or("10".to_owned());
 
     let article_col = DB.collection("article");
+    let release_col = DB.collection("release");
 
     let result = || {
         
@@ -69,13 +70,37 @@ pub fn list(context: &mut Context) {
         for item in article_doc_find {
             let article = item?;
 
+            let release_find = doc!{
+                "article_id" => (article.get_object_id("_id")?.to_owned())
+            };
+
+            let mut release_find_option = FindOptions::default();
+
+            release_find_option.sort = Some(doc!{
+                "_id" => (-1)
+            });
+
+            let release_doc_find = release_col.find_one(Some(release_find), Some(release_find_option))?;
+
+            if let None = release_doc_find {
+                return Err(ErrorCode(10004).into());
+            }
+
+            let release_doc = release_doc_find.unwrap();
+
             articles.push(json!({
                 "Id": article.get_object_id("_id")?.to_string(),
                 "Title": article.get_str("title").unwrap_or_default(),
                 "OwnerIds": article.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
                 "AttendIds": article.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
                 "CreateAt": article.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
-                "UpdateAt": article.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
+                "UpdateAt": article.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+                "Release": json!({
+                    "Id": release_doc.get_object_id("_id")?.to_string(),
+                    "OwnerId": release_doc.get_object_id("owner_id")?.to_string(),
+                    "Content": release_doc.get_str("content").unwrap_or_default(),
+                    "CreateAt": release_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+                })
             }));
         }
 
