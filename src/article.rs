@@ -303,14 +303,15 @@ pub fn new(context: &mut Context) {
             "create_at" => (bson::Bson::from(Utc::now()))
         };
 
-        let insert_result = release_col.insert_one(release, None).and(article_col.insert_one(article, None))?;
+        let insert_result = release_col.insert_one(release.clone(), None).and(article_col.insert_one(article, None))?;
 
         if let Some(exception) = insert_result.write_exception {
             return Err(mon::error::Error::WriteError(exception).into());
         }
 
         let return_json = json!({
-            "ArticleId": article_id.to_hex()
+            "ArticleId": article_id.to_hex(),
+            "ReleaseId": release.get_object_id("_id").unwrap().to_string()
         });
 
         Ok(JsonResponse::from_data(return_json))
@@ -388,13 +389,19 @@ pub fn commit(context: &mut Context) {
             }
         };
 
-        let insert_result = release_col.insert_one(release, None).and(article_col.update_one(article_update_filter, article_update_update, None))?;
+        let insert_result = release_col.insert_one(release.clone(), None).and(article_col.update_one(article_update_filter, article_update_update, None))?;
 
         if let Some(exception) = insert_result.write_exception {
             return Err(mon::error::Error::WriteError(exception).into());
         }
 
-        Ok(JsonResponse::<Empty>::success())
+        let return_json = json!({
+            "ArticleId": article_id,
+            "ReleaseId": release.get_object_id("_id").unwrap().to_string()
+        });
+
+        //Ok(JsonResponse::<Empty>::success())
+        Ok(JsonResponse::from_data(return_json))
     };
 
     match result() {
