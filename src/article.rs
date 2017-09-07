@@ -75,6 +75,7 @@ pub fn list(context: &mut Context) {
             };
 
             let mut release_find_option = FindOptions::default();
+
             release_find_option.sort = Some(doc!{
                 "_id" => (-1)
             });
