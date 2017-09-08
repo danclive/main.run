@@ -62,8 +62,6 @@ fn start() -> Result<()> {
 		context.response.from_text("hello world!").unwrap();
 	});
 
-
-
 	app.post("/test", |context| {
 		let message = context.request.bind_json::<Messages>();
 
@@ -89,8 +87,6 @@ fn start() -> Result<()> {
 
     let mut article_group = Group::new("/article");
 
-    //article_group.before(middleware::auth);
-
     article_group.get("/", article::list);
     article_group.get("/{id:[a-z0-9]{24}}", article::detail);
     article_group.get("/{id:[a-z0-9]{24}}/release/{id2:[a-z0-9]{24}}", article::detail_and_release);
@@ -110,8 +106,9 @@ fn start() -> Result<()> {
 
     middleware::cors(&mut app);
 
-	app.run("0.0.0.0:8000", 4)?;
+	//app.run("0.0.0.0:8000", 4)?;
     //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
+    app.run_tls("0.0.0.0:443", 4,"/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
 }
@@ -129,21 +126,3 @@ fn main() {
     }).join().unwrap();
 
 }
-
-/*
-use chrono::offset::TimeZone;
-
-fn main() {
-    let a = chrono::Utc::now();
-
-    println!("{:?}", a);
-
-    let b = a.with_timezone(&chrono::Local);
-
-    println!("{:?}", b);
-
-    let c = chrono::Local::now();
-
-    println!("{:?}", c);
-}
-*/
