@@ -4,13 +4,16 @@ version = "0.1.0"
 authors = ["dangcheng <dangcheng@hotmail.com>"]
 
 [dependencies]
-sincere = "0.3"
-sincere_token = "0.1"
-mon = "0.1"
+#sincere = "0.3"
+sincere = { path = "../sincere" }
+#sincere_token = "0.1"
+sincere_token = { path = "../token" }
+#mon = "0.1"
+mon = { path = "../mon" }
 lazy_static = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
-ring = "0.11"
+ring = "0.12"
 chrono = "0.4"
 
 [dependencies.serde_json]

@@ -32,7 +32,8 @@ mod middleware;
 lazy_static! {
     /// This is an example for using doc comment attributes
     static ref DB: Database = {
-    	Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        //Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
@@ -55,35 +56,35 @@ struct Messages {
 
 fn start() -> Result<()> {
 
-	let mut app = App::new();
+    let mut app = App::new();
 
-	app.get("/", |context| {
-		//println!("{:?}", DB.version());
-		context.response.from_text("hello world!").unwrap();
-	});
+    app.get("/", |context| {
+        //println!("{:?}", DB.version());
+        context.response.from_text("hello world!").unwrap();
+    });
 
-	app.post("/test", |context| {
-		let message = context.request.bind_json::<Messages>();
+    app.post("/test", |context| {
+        let message = context.request.bind_json::<Messages>();
 
-		println!("{:?}", message);
+        println!("{:?}", message);
 
-		let a = Messages {
-			user_id: 123,
-			date: 456,
-			message: None
-		};
+        let a = Messages {
+            user_id: 123,
+            date: 456,
+            message: None
+        };
 
-		context.response.from_json(a).unwrap();
-	});
+        context.response.from_json(a).unwrap();
+    });
 
 
-	let mut user_group = Group::new("/user");
+    let mut user_group = Group::new("/user");
 
     user_group.get("/", user::detail).before(middleware::auth);
-	user_group.post("/login", user::login);
-	user_group.post("/logon", user::logon);
+    user_group.post("/login", user::login);
+    //user_group.post("/logon", user::logon);
 
-	app.mount(user_group);
+    app.mount(user_group);
 
     let mut article_group = Group::new("/article");
 
@@ -106,9 +107,10 @@ fn start() -> Result<()> {
 
     middleware::cors(&mut app);
 
-	//app.run("0.0.0.0:8000", 4)?;
+    //app.run("0.0.0.0:8000", 4)?;
     //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
     app.run_tls("0.0.0.0:443", 4,"/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    //app.run_tls("127.0.0.1:1443", 4,"/home/simple/coding/rust/main.run/api.main.run/fullchain.pem", "/home/simple/coding/rust/main.run/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
 }
@@ -117,12 +119,12 @@ fn main() {
     println!("Hello, world!");
 
     thread::spawn(|| {
-    	loop {
-    		match start() {
-    			Ok(_) => (),
-    			Err(_) => continue
-    		}
-    	}
+        loop {
+            match start() {
+                Ok(_) => (),
+                Err(_) => continue
+            }
+        }
     }).join().unwrap();
 
 }
