@@ -137,6 +137,7 @@ struct Logon {
     password: String,
 }
 
+#[allow(dead_code)]
 pub fn logon(context: &mut Context) {
     
     let request = &context.request;
