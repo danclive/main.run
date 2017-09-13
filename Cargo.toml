@@ -5,7 +5,7 @@ authors = ["dangcheng <dangcheng@hotmail.com>"]
 
 [dependencies]
 sincere = { path = "../sincere" }
-sincere_token = { path = "../token" }
+sincere_token = "0.1"
 mon = { path = "../mon" }
 lazy_static = "0.2"
 serde = "1.0"

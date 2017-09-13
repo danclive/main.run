@@ -27,6 +27,7 @@ mod common;
 mod util;
 mod article;
 mod collect;
+mod auth;
 mod middleware;
 
 lazy_static! {
@@ -50,9 +51,6 @@ struct Messages {
     #[serde(default)]
     message: Option<(String, String)>,
 }
-
-
-
 
 fn start() -> Result<()> {
 
@@ -81,8 +79,8 @@ fn start() -> Result<()> {
     let mut user_group = Group::new("/user");
 
     user_group.get("/", user::detail).before(middleware::auth);
-    user_group.post("/login", user::login);
-    //user_group.post("/logon", user::logon);
+    user_group.post("/login", auth::login);
+    //user_group.post("/logon", auth::logon);
 
     app.mount(user_group);
 
@@ -96,20 +94,13 @@ fn start() -> Result<()> {
 
     app.mount(article_group);
 
-    let mut collect_group = Group::new("/collect");
-
-    collect_group.get("/", collect::list);
-    collect_group.get("/{id:[a-z0-9]{24}}", collect::detail);
-    collect_group.post("/", collect::new);
-    collect_group.put("/{id:[a-z0-9]{24}}", collect::commit);
-
-    app.mount(collect_group);
+    app.mount(collect::Collect::handle());
 
     middleware::cors(&mut app);
 
     //app.run("0.0.0.0:8000", 4)?;
     //app.run_tls("127.0.0.1:8000", 4,"/home/simple/test.mcorce.com/fullchain.cer", "/home/simple/test.mcorce.com/test.mcorce.com.key").unwrap();
-    app.run_tls("0.0.0.0:443", 4,"/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    app.run_tls("0.0.0.0:443", 4, "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
     //app.run_tls("127.0.0.1:1443", 4,"/home/simple/coding/rust/main.run/api.main.run/fullchain.pem", "/home/simple/coding/rust/main.run/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
