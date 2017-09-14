@@ -272,7 +272,7 @@ struct New {
 }
 
 pub fn new(context: &mut Context) {
-    let id = context.contexts.get("id").unwrap();
+    let id = context.contexts.get("id").unwrap().as_str().unwrap();
 
     let request = &context.request;
 
@@ -334,7 +334,7 @@ struct Commit {
 }
 
 pub fn commit(context: &mut Context) {
-    let id = context.contexts.get("id").unwrap();
+    let id = context.contexts.get("id").unwrap().as_str().unwrap();
 
     let request = &mut context.request;
 

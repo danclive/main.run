@@ -28,14 +28,14 @@ struct User {
 */
 pub fn detail(context: &mut Context) {
 
-    let id = context.contexts.get("id").unwrap();
+    let id = context.contexts.get("id").unwrap().as_str().unwrap();
 
     let user_col = DB.collection("user");
 
     let result = || {
 
         let user_find = doc!{
-            "_id" => (ObjectId::with_string(&id)?)
+            "_id" => (ObjectId::with_string(id)?)
         };
 
         let mut user_find_option = FindOptions::default();

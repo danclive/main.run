@@ -1,5 +1,5 @@
 use sincere::App;
-use sincere::Context;
+use sincere::{Context, Value};
 use sincere::http::Method;
 
 use util::token;
@@ -9,7 +9,7 @@ pub fn auth(context: &mut Context) {
 	if let Some(token) = context.request.get_header("Token") {
 		match token::verify_token(token) {
 			Ok(id) => {
-				context.contexts.insert("id".to_owned(), id);
+				context.contexts.insert("id".to_owned(), Value::String(id));
 			},
 			Err(err) => {
 				context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();

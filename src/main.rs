@@ -78,9 +78,9 @@ fn start() -> Result<()> {
 
     let mut user_group = Group::new("/user");
 
-    user_group.get("/", user::detail).before(middleware::auth);
+    user_group.get("/", user::detail).before(middleware::auth).before(middleware::auth).before(middleware::auth).before(middleware::auth);
     user_group.post("/login", auth::login);
-    //user_group.post("/logon", auth::logon);
+    user_group.post("/logon", auth::logon);
 
     app.mount(user_group);
 
