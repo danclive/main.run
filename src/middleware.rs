@@ -12,7 +12,7 @@ pub fn auth(context: &mut Context) {
 				context.contexts.insert("id".to_owned(), Value::String(id));
 			},
 			Err(err) => {
-				context.response.from_json(JsonResponse::<Empty>::from_error(err)).unwrap();
+				context.response.from_json(JsonResponse::<Empty>::error(err)).unwrap();
 				context.stop();
 			}
 		}

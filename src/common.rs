@@ -23,23 +23,15 @@ pub struct Response<D: Serialize> {
 pub struct Empty;
 
 impl<D: Serialize> Response<D> {
-    pub fn success() -> Response<D> {
+    pub fn success(data: Option<D>) -> Response<D> {
         Response {
             success: true,
             message: None,
-            data: None,
+            data: data,
         }
     }
 
-    pub fn from_data(data: D) -> Response<D> {
-        Response {
-            success: true,
-            message: None,
-            data: Some(data),
-        }
-    }
-
-    pub fn from_error(err: Error) -> Response<D> {
+    pub fn error(err: Error) -> Response<D> {
         let message = match err {
             Error::CodedError(error_code) => {
                 Message {
