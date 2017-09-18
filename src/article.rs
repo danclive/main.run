@@ -5,7 +5,7 @@ use sincere::Context;
 use sincere::Group;
 
 use mon;
-use mon::bson::{self, Bson};
+use mon::bson::Bson;
 use mon::oid::ObjectId;
 //use mon::bson::bson::UTCDateTime;
 use mon::coll::options::FindOptions;
@@ -36,8 +36,6 @@ use middleware;
 //     content: String,
 //     create_at: UTCDateTime,
 // }
-
-
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
@@ -102,15 +100,15 @@ impl Article {
                 let release_doc = release_doc_find.unwrap();
 
                 articles.push(json!({
-                    "Id": article.get_object_id("_id")?.to_string(),
+                    "Id": article.get_object_id("_id")?.to_hex(),
                     "Title": article.get_str("title").unwrap_or_default(),
-                    "OwnerIds": article.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
-                    "AttendIds": article.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+                    "OwnerIds": article.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
+                    "AttendIds": article.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
                     "CreateAt": article.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     "UpdateAt": article.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     "Release": json!({
-                        "Id": release_doc.get_object_id("_id")?.to_string(),
-                        "OwnerId": release_doc.get_object_id("owner_id")?.to_string(),
+                        "Id": release_doc.get_object_id("_id")?.to_hex(),
+                        "OwnerId": release_doc.get_object_id("owner_id")?.to_hex(),
                         "Content": release_doc.get_str("content").unwrap_or_default(),
                         "CreateAt": release_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     })
@@ -183,8 +181,8 @@ impl Article {
                 let release = item?;
 
                 releases.push(json!({
-                    "Id": release.get_object_id("_id")?.to_string(),
-                    "OwnerId": release.get_object_id("owner_id")?.to_string(),
+                    "Id": release.get_object_id("_id")?.to_hex(),
+                    "OwnerId": release.get_object_id("owner_id")?.to_hex(),
                     "Content": release.get_str("content").unwrap_or_default(),
                     "CreateAt": release.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 }));
@@ -193,8 +191,8 @@ impl Article {
             let return_json = json!({
                 "Id": id,
                 "Title": article_doc.get_str("title").unwrap_or_default(),
-                "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
-                "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+                "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
+                "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
                 "CreateAt": article_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "UpdateAt": article_doc.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "Release": releases
@@ -248,8 +246,8 @@ impl Article {
             let release_doc = release_doc_find.unwrap();
             
             let release = json!({
-                "Id": release_doc.get_object_id("_id")?.to_string(),
-                "OwnerId": release_doc.get_object_id("owner_id")?.to_string(),
+                "Id": release_doc.get_object_id("_id")?.to_hex(),
+                "OwnerId": release_doc.get_object_id("owner_id")?.to_hex(),
                 "Content": release_doc.get_str("content").unwrap_or_default(),
                 "CreateAt": release_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
             });
@@ -257,8 +255,8 @@ impl Article {
             let return_json = json!({
                 "Id": id,
                 "Title": article_doc.get_str("title").unwrap_or_default(),
-                "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
-                "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_string()).collect::<Vec<String>>(),
+                "OwnerIds": article_doc.get_array("owner_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
+                "AttendIds": article_doc.get_array("attend_ids")?.iter().map(|i| i.as_object_id().unwrap().to_hex()).collect::<Vec<String>>(),
                 "CreateAt": article_doc.get_utc_datetime("create_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "UpdateAt": article_doc.get_utc_datetime("update_at")?.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "Release": release
@@ -278,7 +276,7 @@ impl Article {
     }
 
     pub fn new(context: &mut Context) {
-        let id = context.contexts.get("id").unwrap().as_str().unwrap();
+        let user_id = context.contexts.get("id").unwrap().as_str().unwrap();
 
         let request = &context.request;
 
@@ -293,20 +291,20 @@ impl Article {
             let article = doc!{
                 "_id" => (article_id.clone()),
                 "title" => (new_json.title),
-                "owner_ids" => [ObjectId::with_string(id)?],
+                "owner_ids" => [ObjectId::with_string(user_id)?],
                 "attend_ids" => [],
                 "collect_ids" => [],
-                "create_at" => (bson::Bson::from(Utc::now())),
-                "update_at" => (bson::Bson::from(Utc::now()))
+                "create_at" => (Bson::from(Utc::now())),
+                "update_at" => (Bson::from(Utc::now()))
             };
 
             let release_id = ObjectId::new()?;
             let release = doc!{
                 "_id" => (release_id.clone()),
                 "article_id" => (article_id.clone()),
-                "owner_id" => (ObjectId::with_string(id)?),
+                "owner_id" => (ObjectId::with_string(user_id)?),
                 "content" => (new_json.content),
-                "create_at" => (bson::Bson::from(Utc::now()))
+                "create_at" => (Bson::from(Utc::now()))
             };
 
             let insert_result = release_col.insert_one(release.clone(), None).and(article_col.insert_one(article, None))?;
@@ -334,7 +332,8 @@ impl Article {
     }
 
     pub fn commit(context: &mut Context) {
-        let id = context.contexts.get("id").unwrap().as_str().unwrap();
+        let user_id = context.contexts.get("id").unwrap().as_str().unwrap();
+        let article_id = context.request.get_param("id").unwrap();
 
         let request = &mut context.request;
 
@@ -342,7 +341,6 @@ impl Article {
         let release_col = DB.collection("release");
 
         let result = || {
-            let article_id = request.get_param("id").unwrap();
 
             let commit_json = request.bind_json::<Commit>()?;
 
@@ -350,24 +348,24 @@ impl Article {
                 "_id" => (ObjectId::with_string(&article_id)?)
             };
 
-            let find_result = article_col.find_one(Some(article_find), None)?;
+            let article_doc_find = article_col.find_one(Some(article_find), None)?;
 
-            if let None = find_result {
+            if let None = article_doc_find {
                 return Err(ErrorCode(10004).into());
             }
 
-            let article_doc = find_result.unwrap();
+            let article_doc = article_doc_find.unwrap();
 
             let owner_ids = article_doc.get_array("owner_ids").unwrap();
             let attend_ids = article_doc.get_array("attend_ids").unwrap();
 
             let attend_ids_clone = &mut attend_ids.clone();
 
-            let user_id = ObjectId::with_string(id)?;
+            let user_id = ObjectId::with_string(user_id)?;
 
             if let None = owner_ids.iter().find(|r| **r == Bson::ObjectId(user_id.clone()) ) {
                 if let None = attend_ids.iter().find(|r| **r == Bson::ObjectId(user_id.clone()) ) {
-                    attend_ids_clone.push(Bson::ObjectId(user_id));
+                    attend_ids_clone.push(Bson::ObjectId(user_id.clone()));
                 }
             }
 
@@ -375,23 +373,23 @@ impl Article {
             let release = doc!{
                 "_id" => (release_id.clone()),
                 "article_id" => (ObjectId::with_string(&article_id)?),
-                "owner_id" => (ObjectId::with_string(id)?),
+                "owner_id" => user_id,
                 "content" => (commit_json.content),
-                "create_at" => (bson::Bson::from(Utc::now()))
+                "create_at" => (Bson::from(Utc::now()))
             };
 
             let article_update_filter = doc!{
                 "_id" => (ObjectId::with_string(&article_id)?)
             };
 
-            let article_update_update = doc!{
+            let article_update = doc!{
                 "$set" => {
                     "attend_ids" => (attend_ids_clone.to_vec()),
-                    "update_at" => (bson::Bson::from(Utc::now()))
+                    "update_at" => (Bson::from(Utc::now()))
                 }
             };
 
-            let insert_result = release_col.insert_one(release.clone(), None).and(article_col.update_one(article_update_filter, article_update_update, None))?;
+            let insert_result = release_col.insert_one(release.clone(), None).and(article_col.update_one(article_update_filter, article_update, None))?;
 
             if let Some(exception) = insert_result.write_exception {
                 return Err(mon::error::Error::WriteError(exception).into());
