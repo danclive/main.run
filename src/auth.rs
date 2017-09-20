@@ -127,10 +127,10 @@ impl Auth {
     }
 
     pub fn handle() -> Group {
-        let mut group = Group::new("/auth");
+        let mut group = Group::new("/user");
 
         group.post("/login", Auth::login);
-        //group.post("/logon", Auth::logon);
+        group.post("/logon", Auth::logon);
 
         group
     }

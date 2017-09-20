@@ -32,6 +32,7 @@ impl<D: Serialize> Response<D> {
     }
 
     pub fn error(err: Error) -> Response<D> {
+        #[allow(unreachable_patterns)]
         let message = match err {
             Error::CodedError(error_code) => {
                 Message {
@@ -42,9 +43,11 @@ impl<D: Serialize> Response<D> {
             Error::IoError(_) |
             Error::Sincere(_) |
             Error::MonError(_) |
+            Error::TokenError(_) |
             Error::DocError(_) |
             Error::BsonEncodeError(_) |
-            Error::ParseIntError(_) => {
+            Error::ParseIntError(_) |
+            Error::ObjectIdError(_) => {
                 Message {
                     code: 0,
                     //info: err.description().to_owned(),

@@ -279,7 +279,7 @@ impl Collect {
                 }
 
                 let article_update_filter = doc!{
-                    "_id" => collects_bson_objectid
+                    "_id" => (article.get_object_id("_id")?.clone())
                 };
 
                 let article_update = doc!{
@@ -288,7 +288,7 @@ impl Collect {
                     }
                 };
 
-                let update_result = collect_col.update_one(article_update_filter, article_update, None)?;
+                let update_result = article_col.update_one(article_update_filter, article_update, None)?;
 
                 if let Some(exception) = update_result.write_exception {
                     return Err(mon::error::Error::WriteError(exception).into());
@@ -309,7 +309,7 @@ impl Collect {
     }
 
     pub fn handle() -> Group {
-        let mut group = Group::new("/user");
+        let mut group = Group::new("/collect");
 
         group.get("/", Collect::list);
         group.get("/{id:[a-z0-9]{24}}", Collect::detail);
