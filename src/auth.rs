@@ -130,7 +130,7 @@ impl Auth {
         let mut group = Group::new("/user");
 
         group.post("/login", Auth::login);
-        group.post("/logon", Auth::logon);
+        //group.post("/logon", Auth::logon);
 
         group
     }

@@ -31,8 +31,8 @@ mod middleware;
 
 lazy_static! {
     static ref DB: Database = {
-        //Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
-        Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        //Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
@@ -83,8 +83,8 @@ fn start() -> Result<()> {
 
     middleware::cors(&mut app);
 
-    app.run("0.0.0.0:8000", 4)?;
-    //app.run_tls("0.0.0.0:443", 4, "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    //app.run("0.0.0.0:8000", 4)?;
+    app.run_tls("0.0.0.0:443", 4, "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
     //app.run_tls("127.0.0.1:1443", 4,"/home/simple/coding/rust/main.run/api.main.run/fullchain.pem", "/home/simple/coding/rust/main.run/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())

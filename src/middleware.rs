@@ -44,4 +44,11 @@ pub fn cors(app: &mut App) {
 #[allow(dead_code, unused_variables)]
 pub fn log(app: &mut App) {
 
+    app.begin(move |context| {
+
+    });
+
+    app.finish(move |content| {
+
+    });
 }
