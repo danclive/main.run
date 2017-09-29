@@ -57,7 +57,7 @@ impl Collect {
             let mut collect_find_option = FindOptions::default();
 
             collect_find_option.sort = Some(doc!{
-                "_id" => (-1)
+                "_id": (-1)
             });
 
             collect_find_option.limit = Some(per_page);
@@ -109,7 +109,7 @@ impl Collect {
         let result = || {
 
             let collect_find = doc!{
-                "_id" => (ObjectId::with_string(&id)?)
+                "_id": (ObjectId::with_string(&id)?)
             };
 
             let collect_doc_find = collect_col.find_one(Some(collect_find), None)?;
@@ -121,13 +121,13 @@ impl Collect {
             let collect_doc = collect_doc_find.unwrap();
 
             let article_find = doc!{
-                "collect_ids" => (ObjectId::with_string(&id)?)
+                "collect_ids": (ObjectId::with_string(&id)?)
             };
 
             let mut article_find_option = FindOptions::default();
 
             article_find_option.sort = Some(doc!{
-                "_id" => (-1)
+                "_id": (-1)
             });
 
             let article_doc_find = article_col.find(Some(article_find), Some(article_find_option))?;
@@ -183,12 +183,12 @@ impl Collect {
 
             let collect_id = ObjectId::new()?;
             let collect = doc!{
-                "_id" => (collect_id.clone()),
-                "title" => (new_json.title),
-                "description" => (new_json.description),
-                "owner_ids" => [ObjectId::with_string(user_id)?],
-                "create_at" => (Bson::from(Utc::now())),
-                "update_at" => (Bson::from(Utc::now()))
+                "_id": (collect_id.clone()),
+                "title": (new_json.title),
+                "description": (new_json.description),
+                "owner_ids": [ObjectId::with_string(user_id)?],
+                "create_at": (Bson::from(Utc::now())),
+                "update_at": (Bson::from(Utc::now()))
             };
 
             let insert_result = collect_col.insert_one(collect, None)?;
@@ -228,7 +228,7 @@ impl Collect {
             let include_json = request.bind_json::<Include>()?;
 
             let collect_find = doc!{
-                "_id" => (ObjectId::with_string(&collect_id)?)
+                "_id": (ObjectId::with_string(&collect_id)?)
             };
 
             let collect_doc_find = collect_col.find_one(Some(collect_find), None)?;
@@ -244,12 +244,12 @@ impl Collect {
             }
 
             let collect_update_filter = doc!{
-                "_id" => (ObjectId::with_string(&collect_id)?)
+                "_id": (ObjectId::with_string(&collect_id)?)
             };
 
             let collect_update = doc!{
-                "$set" => {
-                    "update_at" => (Bson::from(Utc::now()))
+                "$set": {
+                    "update_at": (Bson::from(Utc::now()))
                 }
             };
 
@@ -260,8 +260,8 @@ impl Collect {
             }
 
             let article_doc_find = doc!{
-                "_id" => {
-                    "$in" => (include_json.articles.iter().map(|s| Bson::ObjectId(ObjectId::with_string(s).unwrap()) ).collect::<Vec<Bson>>())
+                "_id": {
+                    "$in": (include_json.articles.iter().map(|s| Bson::ObjectId(ObjectId::with_string(s).unwrap()) ).collect::<Vec<Bson>>())
                 }
             };
 
@@ -279,12 +279,12 @@ impl Collect {
                 }
 
                 let article_update_filter = doc!{
-                    "_id" => (article.get_object_id("_id")?.clone())
+                    "_id": (article.get_object_id("_id")?.clone())
                 };
 
                 let article_update = doc!{
-                    "$set" => {
-                        "collect_ids" => collects
+                    "$set": {
+                        "collect_ids": collects
                     }
                 };
 

@@ -68,7 +68,7 @@ impl Article {
             let mut article_find_option = FindOptions::default();
 
             article_find_option.sort = Some(doc!{
-                "_id" => (-1)
+                "_id": (-1)
             });
 
             article_find_option.limit = Some(per_page);
@@ -82,13 +82,13 @@ impl Article {
                 let article = item?;
 
                 let release_find = doc!{
-                    "article_id" => (article.get_object_id("_id")?.to_owned())
+                    "article_id": (article.get_object_id("_id")?.to_owned())
                 };
 
                 let mut release_find_option = FindOptions::default();
 
                 release_find_option.sort = Some(doc!{
-                    "_id" => (-1)
+                    "_id": (-1)
                 });
 
                 let release_doc_find = release_col.find_one(Some(release_find), Some(release_find_option))?;
@@ -149,7 +149,7 @@ impl Article {
             let per_page = i64::from_str(&per_page)?;
 
             let article_find = doc!{
-                "_id" => (ObjectId::with_string(&id)?)
+                "_id": (ObjectId::with_string(&id)?)
             };
 
             let article_doc_find = article_col.find_one(Some(article_find), None)?;
@@ -161,13 +161,13 @@ impl Article {
             let article_doc = article_doc_find.unwrap();
 
             let release_find = doc!{
-                "article_id" => (ObjectId::with_string(&id)?)
+                "article_id": (ObjectId::with_string(&id)?)
             };
 
             let mut release_find_option = FindOptions::default();
 
             release_find_option.sort = Some(doc!{
-                "_id" => (-1)
+                "_id": (-1)
             });
 
             release_find_option.limit = Some(per_page);
@@ -221,7 +221,7 @@ impl Article {
         let result = || {
 
             let article_find = doc!{
-                "_id" => (ObjectId::with_string(&id)?)
+                "_id": (ObjectId::with_string(&id)?)
             };
 
             let article_doc_find = article_col.find_one(Some(article_find), None)?;
@@ -233,8 +233,8 @@ impl Article {
             let article_doc = article_doc_find.unwrap();
 
             let release_find = doc!{
-                "_id" => (ObjectId::with_string(&id2)?),
-                "article_id" => (ObjectId::with_string(&id)?)
+                "_id": (ObjectId::with_string(&id2)?),
+                "article_id": (ObjectId::with_string(&id)?)
             };
 
             let release_doc_find = release_col.find_one(Some(release_find), None)?;
@@ -289,22 +289,22 @@ impl Article {
 
             let article_id = ObjectId::new()?;
             let article = doc!{
-                "_id" => (article_id.clone()),
-                "title" => (new_json.title),
-                "owner_ids" => [ObjectId::with_string(user_id)?],
-                "attend_ids" => [],
-                "collect_ids" => [],
-                "create_at" => (Bson::from(Utc::now())),
-                "update_at" => (Bson::from(Utc::now()))
+                "_id": (article_id.clone()),
+                "title": (new_json.title),
+                "owner_ids": [ObjectId::with_string(user_id)?],
+                "attend_ids": [],
+                "collect_ids": [],
+                "create_at": (Bson::from(Utc::now())),
+                "update_at": (Bson::from(Utc::now()))
             };
 
             let release_id = ObjectId::new()?;
             let release = doc!{
-                "_id" => (release_id.clone()),
-                "article_id" => (article_id.clone()),
-                "owner_id" => (ObjectId::with_string(user_id)?),
-                "content" => (new_json.content),
-                "create_at" => (Bson::from(Utc::now()))
+                "_id": (release_id.clone()),
+                "article_id": (article_id.clone()),
+                "owner_id": (ObjectId::with_string(user_id)?),
+                "content": (new_json.content),
+                "create_at": (Bson::from(Utc::now()))
             };
 
             let insert_result = release_col.insert_one(release.clone(), None).and(article_col.insert_one(article, None))?;
@@ -345,7 +345,7 @@ impl Article {
             let commit_json = request.bind_json::<Commit>()?;
 
             let article_find = doc!{
-                "_id" => (ObjectId::with_string(&article_id)?)
+                "_id": (ObjectId::with_string(&article_id)?)
             };
 
             let article_doc_find = article_col.find_one(Some(article_find), None)?;
@@ -371,21 +371,21 @@ impl Article {
 
             let release_id = ObjectId::new()?;
             let release = doc!{
-                "_id" => (release_id.clone()),
-                "article_id" => (ObjectId::with_string(&article_id)?),
-                "owner_id" => user_id,
-                "content" => (commit_json.content),
-                "create_at" => (Bson::from(Utc::now()))
+                "_id": (release_id.clone()),
+                "article_id": (ObjectId::with_string(&article_id)?),
+                "owner_id": user_id,
+                "content": (commit_json.content),
+                "create_at": (Bson::from(Utc::now()))
             };
 
             let article_update_filter = doc!{
-                "_id" => (ObjectId::with_string(&article_id)?)
+                "_id": (ObjectId::with_string(&article_id)?)
             };
 
             let article_update = doc!{
-                "$set" => {
-                    "attend_ids" => (attend_ids_clone.to_vec()),
-                    "update_at" => (Bson::from(Utc::now()))
+                "$set": {
+                    "attend_ids": (attend_ids_clone.to_vec()),
+                    "update_at": (Bson::from(Utc::now()))
                 }
             };
 

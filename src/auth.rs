@@ -44,8 +44,8 @@ impl Auth {
             let actual = digest::digest(&SHA256, login_json.password.as_bytes());
 
             let doc = doc!{
-                "username" => (login_json.username),
-                "password" => (BinarySubtype::Generic, actual.as_ref().to_vec())
+                "username": (login_json.username),
+                "password": (BinarySubtype::Generic, actual.as_ref().to_vec())
             };
 
             let user_doc_find = user_col.find_one(Some(doc), None)?;
@@ -88,7 +88,7 @@ impl Auth {
             let logon_json = request.bind_json::<Logon>()?;
 
             let doc = doc!{
-                "username" => (logon_json.username.clone())
+                "username": (logon_json.username.clone())
             };
 
             if let Some(_) = user_col.find_one(Some(doc), None)? {
@@ -98,13 +98,13 @@ impl Auth {
             let actual = digest::digest(&SHA256, logon_json.password.as_bytes());
 
             let doc = doc!{
-                "_id" => (ObjectId::new().unwrap()),
-                "username" => (logon_json.username),
-                "password" => (BinarySubtype::Generic, actual.as_ref().to_vec()),
-                "avatar" => "",
-                "role" => "Guest",
-                "create_at" => (bson::Bson::from(Utc::now())),
-                "update_at" => (bson::Bson::from(Utc::now()))
+                "_id": (ObjectId::new().unwrap()),
+                "username": (logon_json.username),
+                "password": (BinarySubtype::Generic, actual.as_ref().to_vec()),
+                "avatar": "",
+                "role": "Guest",
+                "create_at": (bson::Bson::from(Utc::now())),
+                "update_at": (bson::Bson::from(Utc::now()))
             };
 
             let insert_result = user_col.insert_one(doc, None)?;

@@ -42,13 +42,13 @@ impl User {
         let result = || {
 
             let user_find = doc!{
-                "_id" => (ObjectId::with_string(id)?)
+                "_id": (ObjectId::with_string(id)?)
             };
 
             let mut user_find_option = FindOptions::default();
 
             user_find_option.projection = Some(doc!{
-                "password" => 0
+                "password": 0
             });
 
             let user_doc_find = user_col.find_one(Some(user_find), Some(user_find_option))?;
