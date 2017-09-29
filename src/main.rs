@@ -28,6 +28,7 @@ mod article;
 mod collect;
 mod auth;
 mod middleware;
+mod odm;
 
 lazy_static! {
     static ref DB: Database = {
@@ -47,6 +48,15 @@ struct Messages {
     date: i64,
     #[serde(default)]
     message: Option<(String, String)>,
+}
+
+impl odm::StructDocument for Messages {
+    // add code here
+    const NAME: &'static str = "A";
+
+    fn get_database() -> Database {
+        DB.clone()
+    }
 }
 
 fn start() -> Result<()> {
