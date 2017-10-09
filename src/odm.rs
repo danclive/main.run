@@ -5,10 +5,9 @@ use mon::bson::{self, Bson, Document};
 //use mon::oid::ObjectId;
 use mon::db::Database;
 use mon::bson::encode::EncodeError;
-use mon::coll::options::{FindOptions, UpdateOptions};
+use mon::coll::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
 use mon::common::WriteConcern;
 use mon::coll::results::UpdateResult;
-
 
 use error::Result;
 //use error::ErrorCode;
@@ -25,7 +24,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         if let bson::Bson::Document(doc) = bson {
             Ok(doc)
         } else {
-            Err(EncodeError::Unknown("can't encode object to document".to_string()).into())
+            Err(EncodeError::Unknown("can't encode struct to document".to_string()).into())
         }
     }
 
@@ -45,7 +44,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
             write_concern: write_concern
         };
 
-        Ok(database.collection(Self::NAME).update_one(doc!{"_id": id}, doc, Some(options))?)
+        Ok(database.collection(Self::NAME).replace_one(doc!{"_id": id}, doc, Some(options))?)
     }
 
     fn find_by_id<O>(id: O, options: Option<FindOptions>) -> Result<Option<Self>>
@@ -59,8 +58,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         }
     }
 
-    fn find_one(filter: Option<Document>, options: Option<FindOptions>) -> Result<Option<Self>>
-    {
+    fn find_one(filter: Option<Document>, options: Option<FindOptions>) -> Result<Option<Self>> {
         let database = Self::get_database();
 
         match database.collection(Self::NAME).find_one(filter, options)? {
@@ -69,8 +67,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         }
     }
 
-    fn find(filter: Option<Document>, options: Option<FindOptions>) -> Result<Vec<Self>>
-    {
+    fn find(filter: Option<Document>, options: Option<FindOptions>) -> Result<Vec<Self>> {
         let database = Self::get_database();
 
         let doc_find = database.collection(Self::NAME).find(filter, options)?;
@@ -85,46 +82,32 @@ pub trait StructDocument: Serialize + DeserializeOwned {
 
         Ok(docs)
     }
-}
 
-/*
-pub fn find_by_id<T, O>(id: O, options: Option<FindOptions>) -> Result<Option<T>>
-    where T: StructDocument, O: Into<Bson>
-{
-    let database = T::get_database();
+    fn count(filter: Option<Document>, options: Option<CountOptions>) -> Result<i64> {
+        let database = Self::get_database();
 
-    match database.collection(T::NAME).find_one(Some(doc!{"_id": (id.into())}), options)? {
-        Some(doc) => Ok(Some(T::from_document(doc)?)),
-        None => Ok(None)
-    }
-}
-
-pub fn find_one<T>(filter: Option<Document>, options: Option<FindOptions>) -> Result<Option<T>>
-    where T: StructDocument
-{
-    let database = T::get_database();
-
-    match database.collection(T::NAME).find_one(filter, options)? {
-        Some(doc) => Ok(Some(T::from_document(doc)?)),
-        None => Ok(None)
-    }
-}
-
-pub fn find<T>(filter: Option<Document>, options: Option<FindOptions>) -> Result<Vec<T>>
-    where T: StructDocument
-{
-    let database = T::get_database();
-
-    let doc_find = database.collection(T::NAME).find(filter, options)?;
-
-    let mut docs = Vec::new();
-
-    for item in doc_find {
-        let doc = item?;
-
-        docs.push(T::from_document(doc)?);
+        Ok(database.collection(Self::NAME).count(filter, options)?)
     }
 
-    Ok(docs)
+    fn aggregate(pipeline: Vec<Document>, options: Option<AggregateOptions>) -> Result<Vec<Document>> {
+        let database = Self::get_database();
+
+        let aggregate_find = database.collection(Self::NAME).aggregate(pipeline, options)?;
+
+        let mut docs = Vec::new();
+
+        for item in aggregate_find {
+            let doc = item?;
+
+            docs.push(doc);
+        }
+
+        Ok(docs)
+    }
+
+    fn distinct(field_name: &str, filter: Option<Document>, options: Option<DistinctOptions>) -> Result<Vec<Bson>> {
+        let database = Self::get_database();
+
+        Ok(database.collection(Self::NAME).distinct(field_name, filter, options)?)
+    }
 }
-*/
