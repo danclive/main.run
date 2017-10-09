@@ -20,6 +20,8 @@ use mon::db::Database;
 
 use error::Result;
 
+use odm::StructDocument;
+
 mod error;
 mod user;
 mod common;
@@ -57,6 +59,10 @@ impl odm::StructDocument for Messages {
     fn get_database() -> Database {
         DB.clone()
     }
+}
+
+fn foo() {
+    Messages::find_one(None, None);
 }
 
 fn start() -> Result<()> {
