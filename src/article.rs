@@ -5,6 +5,7 @@ use sincere::Context;
 use sincere::Group;
 
 use mon::coll::options::FindOptions;
+use mon::oid::ObjectId;
 
 use chrono::Utc;
 use chrono::Local;
@@ -13,10 +14,12 @@ use common::{Response, Empty};
 use middleware;
 use model;
 use struct_document::StructDocument;
+use error::ErrorCode;
 
 #[derive(Deserialize, Debug)]
 struct New {
     title: String,
+    image: Vec<String>,
     content: String
 }
 
@@ -52,7 +55,7 @@ impl Article {
                     "title": article.title,
                     "image": article.image,
                     "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
-                    "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+                    "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 }));
             }
 
@@ -76,12 +79,79 @@ impl Article {
 
     }
 
-    pub fn detail(_context: &mut Context) {
+    pub fn detail(context: &mut Context) {
+        let article_id = context.request.get_param("id").unwrap();
 
+        let result = || {
+
+            let article_find = doc!{
+                "_id": (ObjectId::with_string(&article_id)?)
+            };
+
+            let article = model::Article::find_one(Some(article_find), None)?;
+
+            match article {
+                None => return Err(ErrorCode(20002).into()),
+                Some(doc) => {
+                    let return_json = json!({
+                        "id": doc.id.to_hex(),
+                        "title": doc.title,
+                        "image": doc.image,
+                        "create_at": doc.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
+                        "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
+                    });
+
+                    Ok(Response::success(Some(return_json)))
+                }
+            }
+        };
+
+        match result() {
+            Ok(result) => {
+                context.response.from_json(result).unwrap();
+            },
+            Err(err) => {
+                context.response.from_json(Response::<Empty>::error(err)).unwrap();
+            }
+        }
     }
 
-    pub fn new(_context: &mut Context) {
+    pub fn new(context: &mut Context) {
+        let user_id = context.contexts.get("id").unwrap().as_str().unwrap();
 
+        let request = &context.request;
+        let result = || {
+
+            let new_json = request.bind_json::<New>()?;
+
+            let article = model::Article {
+                id: ObjectId::new()?,
+                title: new_json.title,
+                image: new_json.image,
+                author_id: ObjectId::with_string(&user_id)?,
+                collect_id: Vec::new(),
+                content: new_json.content,
+                create_at: Utc::now().into(),
+                update_at: Utc::now().into()
+            };
+
+            article.save(None)?;
+
+            let return_json = json!({
+                "article_id": article.id.to_hex()
+            });
+
+            Ok(Response::success(Some(return_json)))
+        };
+
+        match result() {
+            Ok(result) => {
+                context.response.from_json(result).unwrap();
+            },
+            Err(err) => {
+                context.response.from_json(Response::<Empty>::error(err)).unwrap();
+            }
+        }
     }
 
     pub fn update(_context: &mut Context) {
