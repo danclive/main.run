@@ -40,25 +40,10 @@ impl<D: Serialize> Response<D> {
                     info: error_code.to_str().to_owned(),
                 }
             }
-            Error::IoError(_) |
-            Error::Sincere(_) |
-            Error::MonError(_) |
-            Error::TokenError(_) |
-            Error::DocError(_) |
-            Error::BsonEncodeError(_) |
-            Error::ParseIntError(_) |
-            Error::ObjectIdError(_) => {
-                Message {
-                    code: 0,
-                    //info: err.description().to_owned(),
-                    info: format!("{}", err),
-                }
-            }
-            
             _ => {
                 Message {
                     code: 0,
-                    info: "未知错误".to_owned(),
+                    info: format!("{}", err),
                 }
             }
             

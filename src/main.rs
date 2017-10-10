@@ -9,6 +9,7 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_bytes;
 extern crate ring;
 extern crate chrono;
 
@@ -20,50 +21,38 @@ use mon::db::Database;
 
 use error::Result;
 
-use odm::StructDocument;
+//use struct_document::StructDocument;
 
 mod error;
-mod user;
+//mod user;
 mod common;
 mod util;
 mod article;
-mod collect;
+//mod collect;
 mod auth;
 mod middleware;
-mod odm;
+mod struct_document;
+mod model;
 
 lazy_static! {
     static ref DB: Database = {
-        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
-        //Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        //Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "PascalCase")]
-//#[serde(deny_unknown_fields)]
-struct Messages {
-    //#[serde(rename = "userid")]
-    #[serde(default)]
-    user_id: i64,
-    #[serde(default)]
-    date: i64,
-    #[serde(default)]
-    message: Option<(String, String)>,
-}
-
-impl odm::StructDocument for Messages {
-    // add code here
-    const NAME: &'static str = "A";
-
-    fn get_database() -> Database {
-        DB.clone()
-    }
-}
-
-fn foo() {
-    Messages::find_one(None, None);
-}
+// #[derive(Serialize, Deserialize, Debug)]
+// #[serde(rename_all = "PascalCase")]
+// //#[serde(deny_unknown_fields)]
+// struct Messages {
+//     //#[serde(rename = "userid")]
+//     #[serde(default)]
+//     user_id: i64,
+//     #[serde(default)]
+//     date: i64,
+//     #[serde(default)]
+//     message: Option<(String, String)>,
+// }
 
 fn start() -> Result<()> {
 
@@ -74,38 +63,26 @@ fn start() -> Result<()> {
         context.response.from_text("hello world!").unwrap();
     });
 
-    app.post("/test", |context| {
-        let message = context.request.bind_json::<Messages>();
-
-        println!("{:?}", message);
-
-        let a = Messages {
-            user_id: 123,
-            date: 456,
-            message: None
-        };
-
-        context.response.from_json(a).unwrap();
-    });
-
     app.mount(auth::Auth::handle());
 
-    app.mount(user::User::handle());
+    //app.mount(user::User::handle());
 
     app.mount(article::Article::handle());
 
-    app.mount(collect::Collect::handle());
+    //app.mount(collect::Collect::handle());
 
     app.use_middleware(middleware::cors);
 
     app.use_middleware(middleware::log);
 
-    //app.run("0.0.0.0:8000", 4)?;
-    app.run_tls("0.0.0.0:443", 4, "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    app.run("0.0.0.0:8000", 4)?;
+    //app.run_tls("0.0.0.0:443", 4, "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
     //app.run_tls("127.0.0.1:1443", 4,"/home/simple/coding/rust/main.run/api.main.run/fullchain.pem", "/home/simple/coding/rust/main.run/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
 }
+
+
 
 fn main() {
     println!("Hello, world!");
@@ -118,4 +95,5 @@ fn main() {
             }
         }
     }).join().unwrap();
+
 }

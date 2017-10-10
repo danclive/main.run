@@ -2,15 +2,14 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use mon::bson::{self, Bson, Document};
-//use mon::oid::ObjectId;
 use mon::db::Database;
 use mon::bson::encode::EncodeError;
 use mon::coll::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
 use mon::common::WriteConcern;
 use mon::coll::results::UpdateResult;
+use mon::error::Error::WriteError;
 
 use error::Result;
-//use error::ErrorCode;
 
 pub trait StructDocument: Serialize + DeserializeOwned {
 
@@ -44,7 +43,13 @@ pub trait StructDocument: Serialize + DeserializeOwned {
             write_concern: write_concern
         };
 
-        Ok(database.collection(Self::NAME).replace_one(doc!{"_id": id}, doc, Some(options))?)
+        let result = database.collection(Self::NAME).replace_one(doc!{"_id": id}, doc, Some(options))?;
+
+        if let Some(exception) = result.write_exception {
+            return Err(WriteError(exception).into());
+        }
+
+        Ok(result)
     }
 
     fn find_by_id<O>(id: O, options: Option<FindOptions>) -> Result<Option<Self>>
