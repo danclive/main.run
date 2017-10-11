@@ -4,11 +4,10 @@ use sincere::App;
 use sincere::{Context, Value};
 use sincere::http::Method;
 
-use chrono::Duration;
-use chrono::{Local, DateTime, TimeZone};
+use chrono::{Local, DateTime};
 
 use util::token;
-use util::console_color::Print;
+use util::console_color::{Print, Color};
 use common::{Response, Empty};
 
 pub fn auth(context: &mut Context) {
@@ -47,7 +46,6 @@ pub fn cors(app: &mut App) {
     });
 }
 
-#[allow(dead_code, unused_variables)]
 pub fn log(app: &mut App) {
 
     app.begin(move |context| {
@@ -56,19 +54,46 @@ pub fn log(app: &mut App) {
 
     app.finish(move |context| {
         let start_instant = context.contexts.get("instant").unwrap().as_instant().unwrap();
-        let now_instant = Instant::now();
 
-        let duration = Duration::from_std(now_instant - *start_instant).unwrap();
-
-        //println!("{:?}", duration.num_milliseconds());
         let time_now: DateTime<Local> = Local::now();
 
         let status_code = context.response.status_code.as_ref();
 
-        let status = match status_code / 100 {
-            _ => Print::unset("NONE")
+        let now_instant = Instant::now();
+
+        let duration = now_instant - *start_instant;
+
+        let s = duration.as_secs();
+        let ms = duration.subsec_nanos() / (1000 * 1000);
+
+        let s = if s != 0 {
+            format!("{}s", s)
+        } else if ms != 0 {
+            format!("{}ms", ms)
+        } else {
+            format!("{}us", duration.subsec_nanos() / 1000)
         };
 
-        println!("{} {} |{}|", Print::green("[SINCERE]"), Print::green(time_now.format("%Y/%m/%d - %H:%M:%S %z").to_string()), status);
+        let method = context.request.method();
+
+        let path = context.request.path();
+
+        let status = match status_code / 100 {
+            1 => Print::white(status_code.to_string()).background(Color::Blue),
+            2 => Print::white(status_code.to_string()).background(Color::Green),
+            3 => Print::white(status_code.to_string()).background(Color::Yellow),
+            4 => Print::white(status_code.to_string()).background(Color::Purple),
+            5 => Print::white(status_code.to_string()).background(Color::Red),
+            _ => Print::unset("NONE".to_string())
+        };
+
+        println!(
+            "{} {} |{}| {:>5} | {} {}",
+            Print::green("[MAIN.RUN]"),
+            Print::green(time_now.format("%Y/%m/%d - %H:%M:%S %z").to_string()),
+            status, Print::green(s),
+            Print::green(method),
+            Print::green(path)
+        );
     });
 }

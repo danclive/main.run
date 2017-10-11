@@ -96,7 +96,7 @@ impl<T> Print<T>
         self
     }
 
-    pub fn background(&mut self, color: Color) -> &Print<T> {
+    pub fn background(mut self, color: Color) -> Print<T> {
         self.background = color;
         self
     }
@@ -110,6 +110,7 @@ impl<T: Display> fmt::Display for Print<T> {
         if self.background != Color::Unset {
             write!(f, "4")?;
             self.background.fmt(f)?;
+            write!(f, ";")?;
         }
 
         if self.foreground != Color::Unset {
