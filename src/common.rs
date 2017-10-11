@@ -5,14 +5,12 @@ use serde::Serialize;
 use error::Error;
 
 #[derive(Serialize, Debug)]
-#[serde(rename_all = "PascalCase")]
 pub struct Message {
     code: u16,
     info: String,
 }
 
 #[derive(Serialize, Debug)]
-#[serde(rename_all = "PascalCase")]
 pub struct Response<D: Serialize> {
     success: bool,
     message: Option<Message>,

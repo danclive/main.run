@@ -23,6 +23,13 @@ struct New {
     content: String
 }
 
+#[derive(Deserialize, Debug)]
+struct Update {
+    title: String,
+    image: Vec<String>,
+    content: String
+}
+
 pub struct Article;
 
 impl Article {
@@ -60,8 +67,8 @@ impl Article {
             }
 
             let return_json = json!({
-                "Articles": articles_json,
-                "Count": articles_count
+                "articles": articles_json,
+                "count": articles_count
             });
 
             Ok(Response::success(Some(return_json)))
@@ -97,6 +104,7 @@ impl Article {
                         "id": doc.id.to_hex(),
                         "title": doc.title,
                         "image": doc.image,
+                        "content": doc.content,
                         "create_at": doc.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                         "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                     });
@@ -120,6 +128,7 @@ impl Article {
         let user_id = context.contexts.get("id").unwrap().as_str().unwrap();
 
         let request = &context.request;
+
         let result = || {
 
             let new_json = request.bind_json::<New>()?;
@@ -154,8 +163,48 @@ impl Article {
         }
     }
 
-    pub fn update(_context: &mut Context) {
+    pub fn update(context: &mut Context) {
+        let article_id = context.request.get_param("id").unwrap();
 
+        let request = &context.request;
+
+        let result = || {
+
+            let update_json = request.bind_json::<Update>()?;
+
+            let article_find = doc!{
+                "_id": (ObjectId::with_string(&article_id)?)
+            };
+
+            let article = model::Article::find_one(Some(article_find), None)?;
+
+            match article {
+                None => return Err(ErrorCode(20002).into()),
+                Some(mut doc) => {
+                    doc.title = update_json.title;
+                    doc.image = update_json.image;
+                    doc.content = update_json.content;
+                    doc.update_at = Utc::now().into();
+
+                    doc.save(None)?;
+
+                    let return_json = json!({
+                        "article_id": article_id
+                    });
+
+                    Ok(Response::success(Some(return_json)))
+                }
+            }
+        };
+
+        match result() {
+            Ok(result) => {
+                context.response.from_json(result).unwrap();
+            },
+            Err(err) => {
+                context.response.from_json(Response::<Empty>::error(err)).unwrap();
+            }
+        }
     }
 
     pub fn handle() -> Group {

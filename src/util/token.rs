@@ -8,7 +8,6 @@ const KEY: &str = "key";
 const EXPIRATION_TIME: i64 = 60 * 60 * 24 * 30;
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 struct Token {
 	user_id: String,
 	date: i64,

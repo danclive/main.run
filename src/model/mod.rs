@@ -7,8 +7,6 @@ use serde_bytes;
 use struct_document::StructDocument;
 use DB;
 
-mod article;
-
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Role {
     Admin,
