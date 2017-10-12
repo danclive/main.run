@@ -41,6 +41,10 @@ impl Article {
             let page = i64::from_str(&page)?;
             let per_page = i64::from_str(&per_page)?;
 
+            let article_find = doc!{
+                "status": 0
+            };
+
             let mut article_find_option = FindOptions::default();
 
             article_find_option.sort = Some(doc!{
@@ -50,7 +54,7 @@ impl Article {
             article_find_option.limit = Some(per_page);
             article_find_option.skip = Some((page - 1) * per_page);
 
-            let articles = model::Article::find(None, Some(article_find_option))?;
+            let articles = model::Article::find(Some(article_find), Some(article_find_option))?;
 
             let articles_count = model::Article::count(None, None)?;
 
@@ -92,7 +96,8 @@ impl Article {
         let result = || {
 
             let article_find = doc!{
-                "_id": (ObjectId::with_string(&article_id)?)
+                "_id": (ObjectId::with_string(&article_id)?),
+                "status": 0
             };
 
             let article = model::Article::find_one(Some(article_find), None)?;
@@ -141,7 +146,8 @@ impl Article {
                 collect_id: Vec::new(),
                 content: new_json.content,
                 create_at: Utc::now().into(),
-                update_at: Utc::now().into()
+                update_at: Utc::now().into(),
+                status: 0
             };
 
             article.save(None)?;

@@ -45,6 +45,7 @@ pub struct Article {
     pub content: String,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
+    pub status: i32
 }
 
 impl StructDocument for Article {

@@ -11,25 +11,25 @@ use util::console_color::{Print, Color};
 use common::{Response, Empty};
 
 pub fn auth(context: &mut Context) {
-	if let Some(token) = context.request.get_header("Token") {
-		match token::verify_token(token) {
-			Ok(id) => {
-				context.contexts.insert("id".to_owned(), Value::String(id));
-			},
-			Err(err) => {
-				context.response.from_json(Response::<Empty>::error(err)).unwrap();
-				context.stop();
-			}
-		}
-	} else {
-		context.response.status(401);
-		context.stop();
-	}
+    if let Some(token) = context.request.get_header("Token") {
+        match token::verify_token(token) {
+            Ok(id) => {
+                context.contexts.insert("id".to_owned(), Value::String(id));
+            },
+            Err(err) => {
+                context.response.from_json(Response::<Empty>::error(err)).unwrap();
+                context.stop();
+            }
+        }
+    } else {
+        context.response.status(401);
+        context.stop();
+    }
 }
 
 pub fn cors(app: &mut App) {
-	
-	app.begin(move |context| {
+    
+    app.begin(move |context| {
         if context.request.method() == &Method::Options {
             context.response
             .status(204)
