@@ -88,7 +88,7 @@ pub fn log(app: &mut App) {
         };
 
         println!(
-            "{} {} |{}| {:>5} | {} {}",
+            "{} {} {} {:>5} | {} {}",
             Print::green("[MAIN.RUN]"),
             Print::green(time_now.format("%Y/%m/%d - %H:%M:%S %z").to_string()),
             status, Print::green(s),

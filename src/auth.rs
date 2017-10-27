@@ -29,89 +29,60 @@ struct Logon {
 pub struct Auth;
 
 impl Auth {
-    pub fn login(context: &mut Context) {
-        let request = &context.request;
+    hand!(login, {|context: &mut Context| {
+        let login_json = context.request.bind_json::<Login>()?;
 
-        let result = || {
-            
-            let login_json = request.bind_json::<Login>()?;
+        let actual = digest::digest(&SHA256, login_json.password.as_bytes());
 
-            let actual = digest::digest(&SHA256, login_json.password.as_bytes());
-
-            let doc = doc!{
-                "username": (login_json.username),
-                "password": (BinarySubtype::Generic, actual.as_ref().to_vec())
-            };
-
-            let user = model::User::find_one(Some(doc), None)?;
-
-            match user {
-                None => return Err(ErrorCode(20002).into()),
-                Some(doc) => {
-                    let user_id = doc.id.to_string();
-                    let token = token::generate_token(user_id)?;
-
-                    let return_json = json!({
-                        "token": token
-                    });
-
-                    Ok(Response::success(Some(return_json)))
-                }
-            }
+        let doc = doc!{
+            "username": (login_json.username),
+            "password": (BinarySubtype::Generic, actual.as_ref().to_vec())
         };
 
-        match result() {
-            Ok(result) => {
-                context.response.from_json(result).unwrap();
-            },
-            Err(err) => {
-                context.response.from_json(Response::<Empty>::error(err)).unwrap();
+        let user = model::User::find_one(Some(doc), None)?;
+
+        match user {
+            None => return Err(ErrorCode(20002).into()),
+            Some(doc) => {
+                let user_id = doc.id.to_string();
+                let token = token::generate_token(user_id)?;
+
+                let return_json = json!({
+                    "token": token
+                });
+
+                Ok(Response::success(Some(return_json)))
             }
         }
-    }
+    }});
 
-    #[allow(dead_code)]
-    pub fn logon(context: &mut Context) {
-        let request = &context.request;
+    hand!(logon, {|context: &mut Context| {
+        let logon_json = context.request.bind_json::<Logon>()?;
 
-        let result = || {
-            
-            let logon_json = request.bind_json::<Logon>()?;
-
-            let doc = doc!{
-                "username": (logon_json.username.clone())
-            };
-
-            if let Some(_) = model::User::find_one(Some(doc), None)? {
-                return Err(ErrorCode(20003).into());
-            }
-
-            let actual = digest::digest(&SHA256, logon_json.password.as_bytes());
-
-            let user = model::User {
-                id: ObjectId::new()?,
-                username: logon_json.username,
-                avatar: "".to_owned(),
-                role: model::Role::Guest,
-                password: actual.as_ref().to_vec(),
-                create_at: Utc::now().into(),
-                update_at: Utc::now().into()
-            };
-
-            user.save(None)?;
-
-            Ok(Response::<Empty>::success(None))
+        let doc = doc!{
+            "username": (logon_json.username.clone())
         };
 
-        match result() {
-            Ok(result) => {
-                context.response.from_json(result).unwrap();
-            },
-            Err(err) => {
-                context.response.from_json(Response::<Empty>::error(err)).unwrap();
-            }
+        if let Some(_) = model::User::find_one(Some(doc), None)? {
+            return Err(ErrorCode(20003).into());
         }
-    }
+
+        let actual = digest::digest(&SHA256, logon_json.password.as_bytes());
+
+        let user = model::User {
+            id: ObjectId::new()?,
+            username: logon_json.username,
+            avatar: "".to_owned(),
+            role: model::Role::Guest,
+            password: actual.as_ref().to_vec(),
+            create_at: Utc::now().into(),
+            update_at: Utc::now().into()
+        };
+
+        user.save(None)?;
+
+        Ok(Response::<Empty>::success(None))
+    }});
 
     pub fn handle() -> Group {
         let mut group = Group::new("/user");

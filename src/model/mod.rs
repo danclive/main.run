@@ -62,6 +62,7 @@ pub struct Collect {
     pub id: ObjectId,
     pub name: String,
     pub description: String,
+    pub image: Vec<String>,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
 }
