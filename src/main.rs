@@ -13,8 +13,6 @@ extern crate serde_bytes;
 extern crate ring;
 extern crate chrono;
 
-use std::thread;
-
 use sincere::App;
 use mon::client::Client;
 use mon::db::Database;
@@ -36,8 +34,8 @@ mod model;
 
 lazy_static! {
     static ref DB: Database = {
-        //Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
-        Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        //Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
@@ -61,8 +59,8 @@ fn start() -> Result<()> {
 
     app.use_middleware(middleware::log);
 
-    app.run("0.0.0.0:8000")?;
-    //app.run_tls("0.0.0.0:443", "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    //app.run("0.0.0.0:8000")?;
+    app.run_tls("0.0.0.0:443", "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
 }
@@ -70,12 +68,5 @@ fn start() -> Result<()> {
 fn main() {
     println!("Hello, world!");
 
-    thread::spawn(|| {
-        loop {
-            match start() {
-                Ok(_) => (),
-                Err(_) => continue
-            }
-        }
-    }).join().unwrap();
+    start().expect("can't start the server");
 }
