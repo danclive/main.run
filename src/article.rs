@@ -108,7 +108,6 @@ impl Article {
             title: new_json.title,
             image: new_json.image,
             author_id: ObjectId::with_string(&user_id)?,
-            collect_id: Vec::new(),
             content: new_json.content,
             create_at: Utc::now().into(),
             update_at: Utc::now().into(),

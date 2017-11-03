@@ -41,7 +41,6 @@ pub struct Article {
     pub title: String,
     pub image: Vec<String>,
     pub author_id: ObjectId,
-    pub collect_id: Vec<ObjectId>,
     pub content: String,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
@@ -63,6 +62,7 @@ pub struct Collect {
     pub name: String,
     pub description: String,
     pub image: Vec<String>,
+    pub articles_id: Vec<ObjectId>,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
 }

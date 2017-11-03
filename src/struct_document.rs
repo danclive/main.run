@@ -8,6 +8,7 @@ use mon::coll::options::{FindOptions, UpdateOptions, CountOptions, AggregateOpti
 use mon::common::WriteConcern;
 use mon::coll::results::UpdateResult;
 use mon::error::Error::WriteError;
+use mon::common::merge_options;
 
 use error::Result;
 
@@ -52,12 +53,18 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         Ok(result)
     }
 
-    fn find_by_id<O>(id: O, options: Option<FindOptions>) -> Result<Option<Self>>
+    fn find_by_id<O>(id: O, filter: Option<Document>, options: Option<FindOptions>) -> Result<Option<Self>>
         where O: Into<Bson>
     {
         let database = Self::get_database();
 
-        match database.collection(Self::NAME).find_one(Some(doc!{"_id": (id.into())}), options)? {
+        let mut filter_doc = doc!{"_id": (id.into())};
+
+        if let Some(filter) = filter {
+            filter_doc = merge_options(filter_doc, filter);
+        }
+
+        match database.collection(Self::NAME).find_one(Some(filter_doc), options)? {
             Some(doc) => Ok(Some(Self::from_document(doc)?)),
             None => Ok(None)
         }

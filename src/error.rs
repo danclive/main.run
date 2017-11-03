@@ -26,6 +26,7 @@ pub enum Error {
     BsonDecodeError(DecodeError),
     ParseIntError(num::ParseIntError),
     ObjectIdError(oid::Error),
+    Message(String)
 }
 
 impl From<io::Error> for Error {
@@ -101,6 +102,7 @@ impl fmt::Display for Error {
             Error::BsonDecodeError(ref inner) => inner.fmt(fmt),
             Error::ParseIntError(ref inner) => inner.fmt(fmt),
             Error::ObjectIdError(ref inner) => inner.fmt(fmt),
+            Error::Message(ref inner) => inner.fmt(fmt)
         }
     }
 }
@@ -118,6 +120,7 @@ impl error::Error for Error {
             Error::BsonDecodeError(ref err) => err.description(),
             Error::ParseIntError(ref err) => err.description(),
             Error::ObjectIdError(ref err) => err.description(),
+            Error::Message(ref err) => err
         }
     }
 
@@ -133,6 +136,7 @@ impl error::Error for Error {
             Error::BsonDecodeError(ref err) => Some(err),
             Error::ParseIntError(ref err) => Some(err),
             Error::ObjectIdError(ref err) => Some(err),
+            Error::Message(_) => None
         }
     }
 }

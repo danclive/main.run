@@ -13,6 +13,7 @@ serde_derive = "1.0"
 serde_bytes = "0.10"
 ring = "0.12"
 chrono = "0.4"
+postgres = "0.15"
 
 [dependencies.serde_json]
 version = "1.0"

@@ -64,14 +64,10 @@ impl Collect {
     hand!(detail, {|context: &mut Context| {
         let collect_id = context.request.get_param("id").unwrap();
 
-        let collect_find = doc!{
-            "_id": (ObjectId::with_string(&collect_id)?)
-        };
-
-        let collect = model::Collect::find_one(Some(collect_find), None)?;
+        let collect = model::Collect::find_by_id(ObjectId::with_string(&collect_id)?, None, None)?;
 
         match collect {
-            None => return Err(ErrorCode(20002).into()),
+            None => return Err(ErrorCode(10004).into()),
             Some(doc) => {
                 let return_json = json!({
                     "id": doc.id.to_hex(),
@@ -102,6 +98,7 @@ impl Collect {
             name: new_json.name,
             description: new_json.description,
             image: new_json.image,
+            articles_id: Vec::new(),
             create_at: Utc::now().into(),
             update_at: Utc::now().into()
         };
@@ -134,7 +131,7 @@ impl Collect {
         let collect = model::Collect::find_one(Some(collect_find), None)?;
 
         match collect {
-            None => return Err(ErrorCode(20002).into()),
+            None => return Err(ErrorCode(10004).into()),
             Some(mut doc) => {
                 doc.name = update_json.name;
                 doc.description = update_json.description;
@@ -152,11 +149,63 @@ impl Collect {
         }
     }});
 
-    // delete
+    hand!(push, {|context: &mut Context| {
+        let collect_id = context.request.get_param("id").unwrap();
 
-    // push
+        #[derive(Deserialize, Debug)]
+        struct Push {
+            articles: Vec<String>
+        }
 
-    // remove
+        let push_json = context.request.bind_json::<Push>()?;
+
+        let collect = model::Collect::find_by_id(ObjectId::with_string(&collect_id)?, None, None)?;
+
+        match collect {
+            Some(mut collect) => {
+                for article in push_json.articles {
+                    let article_id = ObjectId::with_string(&article)?;
+
+                    if model::Article::count(Some(doc!{"_id": (article_id.clone()), "status": 0}), None)? > 0 {
+                        if !collect.articles_id.contains(&article_id) {
+                            collect.articles_id.push(article_id);
+                        }
+                    }
+                }
+
+                collect.update_at = Utc::now().into();
+                collect.save(None)?;
+            },
+            None => return Err(ErrorCode(10004).into())
+        }
+
+        Ok(Response::<Empty>::success(None))
+    }});
+
+    hand!(remove, {|context: &mut Context| {
+        let collect_id = context.request.get_param("id").unwrap();
+
+        #[derive(Deserialize, Debug)]
+        struct Remove {
+            articles: Vec<String>
+        }
+
+        let remove_json = context.request.bind_json::<Remove>()?;
+
+        let collect = model::Collect::find_by_id(ObjectId::with_string(&collect_id)?, None, None)?;
+
+        match collect {
+            Some(mut collect) => {
+                collect.articles_id = collect.articles_id.into_iter().filter(|id|{ !remove_json.articles.contains(&id.to_hex()) }).collect();
+
+                collect.update_at = Utc::now().into();
+                collect.save(None)?;
+            },
+            None => return Err(ErrorCode(10004).into())
+        }
+
+        Ok(Response::<Empty>::success(None))
+    }});
 
     pub fn handle() -> Group {
         let mut group = Group::new("/article");
@@ -165,6 +214,8 @@ impl Collect {
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::new).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
+        group.put("/{id:[a-z0-9]{24}}/push", Self::push).before(middleware::auth);
+        group.put("/{id:[a-z0-9]{24}}/remove", Self::remove).before(middleware::auth);
 
         group
     }
