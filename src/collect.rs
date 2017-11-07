@@ -27,16 +27,12 @@ impl Collect {
         let page = i64::from_str(&page)?;
         let per_page = i64::from_str(&per_page)?;
 
-        let collect_find = doc!{
-            "status": 0
-        };
-
         let mut collect_find_option = FindOptions::default();
 
         collect_find_option.limit = Some(per_page);
         collect_find_option.skip = Some((page - 1) * per_page);
 
-        let collects = model::Collect::find(Some(collect_find), Some(collect_find_option))?;
+        let collects = model::Collect::find(None, Some(collect_find_option))?;
 
         let collect_count = model::Article::count(None, None)?;
 
@@ -208,7 +204,7 @@ impl Collect {
     }});
 
     pub fn handle() -> Group {
-        let mut group = Group::new("/article");
+        let mut group = Group::new("/collect");
 
         group.get("/", Self::list);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);

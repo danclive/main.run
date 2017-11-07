@@ -35,8 +35,8 @@ mod model;
 
 lazy_static! {
     static ref DB: Database = {
-        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
-        //Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        //Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
     };
 }
 
@@ -60,16 +60,10 @@ fn start() -> Result<()> {
 
     app.use_middleware(middleware::log);
 
-    //app.run("0.0.0.0:8000")?;
-    app.run_tls("0.0.0.0:443", "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    app.run("0.0.0.0:8000")?;
+    //app.run_tls("0.0.0.0:443", "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
 
     Ok(())
-}
-
-struct Person {
-    id: i32,
-    name: String,
-    data: Option<Vec<u8>>,
 }
 
 fn main() {
