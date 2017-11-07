@@ -38,7 +38,6 @@ impl Drop for PooledConn {
         if let Ok(mut locked) = self.pool.lock() {
             locked.conns.push(self.conn.take().unwrap());
             self.wait_lock.notify_one();
-            println!("{:?}", 121111111);
         }
     }
 }
@@ -78,7 +77,6 @@ impl ConnectionPool {
         }
 
         loop {
-            println!("{:?}", "Asdffffffffff");
             if let Some(conn) = locked.conns.pop() {
                 return Ok(PooledConn {
                     conn: Some(conn),
@@ -102,3 +100,46 @@ impl ConnectionPool {
         }
     }
 }
+
+    // let pool = util::posrgres_pool::ConnectionPool::new("postgresql://postgres:123456@localhost");
+
+    // let mut threads = Vec::new();
+
+    // for _ in 0..1000 {
+    //     let pool = pool.clone();
+
+    //     threads.push(::std::thread::spawn(move || {
+    //         let polled_conn = pool.acquire_conn().unwrap();
+
+    //         let conn = polled_conn.get_conn();
+
+    //         // println!("{:?}", rows);
+
+    //         // conn.execute("CREATE TABLE person (
+    //         //         id              SERIAL PRIMARY KEY,
+    //         //         name            VARCHAR NOT NULL,
+    //         //         data            BYTEA
+    //         //       )", &[]).unwrap();
+    //         // let me = Person {
+    //         //     id: 0,
+    //         //     name: "Steven".to_string(),
+    //         //     data: None,
+    //         // };
+    //         //conn.execute("INSERT INTO person (name, data) VALUES ($1, $2)",
+    //                      //&[&me.name, &me.data]).unwrap();
+    //         for row in &conn.query("SELECT id, name, data FROM person", &[]).unwrap() {
+    //             let person = Person {
+    //                 id: row.get(0),
+    //                 name: row.get(1),
+    //                 data: row.get(2),
+    //             };
+    //             //println!("Found person {}", person.name);
+    //         }
+
+    //         ::std::thread::sleep_ms(500);
+    //     }));
+    // }
+
+    // for t in threads {
+    //     t.join();
+    // }
