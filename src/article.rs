@@ -1,8 +1,8 @@
 use std::i64;
 use std::str::FromStr;
 
-use sincere::Context;
-use sincere::Group;
+use sincere::app::context::Context;
+use sincere::app::Group;
 
 use mon::coll::options::FindOptions;
 use mon::oid::ObjectId;
@@ -21,8 +21,8 @@ pub struct Article;
 impl Article {
 
     hand!(list, {|context:  &mut Context| {
-        let page = context.request.get_query("page").unwrap_or("1".to_owned());
-        let per_page = context.request.get_query("per_page").unwrap_or("10".to_owned());
+        let page = context.request.query("page").unwrap_or("1".to_owned());
+        let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
 
         let page = i64::from_str(&page)?;
         let per_page = i64::from_str(&per_page)?;
@@ -65,7 +65,7 @@ impl Article {
     }});
 
     hand!(detail, {|context: &mut Context| {
-        let article_id = context.request.get_param("id").unwrap();
+        let article_id = context.request.param("id").unwrap();
 
         let article_find = doc!{
             "_id": (ObjectId::with_string(&article_id)?),
@@ -75,9 +75,9 @@ impl Article {
         let article = model::Article::find_one(Some(article_find), None)?;
 
         match article {
-            None => return Err(ErrorCode(20002).into()),
+            None => return Err(ErrorCode(10004).into()),
             Some(doc) => {
-                let return_json = json!({
+                let mut return_json = json!({
                     "id": doc.id.to_hex(),
                     "title": doc.title,
                     "image": doc.image,
@@ -85,6 +85,19 @@ impl Article {
                     "create_at": doc.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 });
+
+                let collects = model::Collect::find(Some(doc!{"articles_id": (doc.id)}), None)?;
+
+                let mut collect_json = Vec::new();
+
+                for collect in  collects {
+                    collect_json.push(json!({
+                        "id": collect.id.to_hex(),
+                        "name": collect.name
+                    }))
+                }
+
+                return_json["collects"] = json!(collect_json);
 
                 Ok(Response::success(Some(return_json)))
             }
@@ -124,7 +137,7 @@ impl Article {
     }});
 
     hand!(update, {|context: &mut Context| {
-        let article_id = context.request.get_param("id").unwrap();
+        let article_id = context.request.param("id").unwrap();
 
         #[derive(Deserialize, Debug)]
         struct Update {
@@ -142,7 +155,7 @@ impl Article {
         let article = model::Article::find_one(Some(article_find), None)?;
 
         match article {
-            None => return Err(ErrorCode(20002).into()),
+            None => return Err(ErrorCode(10004).into()),
             Some(mut doc) => {
                 doc.title = update_json.title;
                 doc.image = update_json.image;

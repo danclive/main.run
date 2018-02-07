@@ -14,7 +14,7 @@ extern crate ring;
 extern crate chrono;
 extern crate postgres;
 
-use sincere::App;
+use sincere::app::App;
 use mon::client::Client;
 use mon::db::Database;
 
@@ -22,7 +22,6 @@ use error::Result;
 #[macro_use]
 mod macros;
 mod error;
-//mod user;
 mod common;
 mod util;
 mod article;
@@ -35,8 +34,7 @@ mod model;
 
 lazy_static! {
     static ref DB: Database = {
-        //Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
-        Client::with_uri("mongodb://dev.mcorce.com:27017").expect("Failed to initialize client.").db("test")
+        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
     };
 }
 
@@ -48,20 +46,39 @@ fn start() -> Result<()> {
         context.response.from_text("hello world!").unwrap();
     });
 
-    app.mount(auth::Auth::handle());
+    // app.post("/", |context| {
+    //     let form_data = context.request.parse_formdata();
 
-    //app.mount(user::User::handle());
+    //     if let Some(form_data) = form_data {
+    //         println!("{:?}", form_data.fields);
 
-    app.mount(article::Article::handle());
+    //         if form_data.has_file() {
+    //             for mut file in form_data.files.into_iter() {
+    //                 //use std::path::PathBuf;
 
-    app.mount(collect::Collect::handle());
+    //                 //let mut path = PathBuf::from("/home/danc/temp");
+
+    //                 let result = file.1.save_file("/home/danc/temp");
+
+    //                 println!("{:?}", result);
+    //             }
+    //         }
+    //     }
+
+    //     context.response.from_text("hello world!").unwrap();
+    // });
+
+    app.mount(auth::Auth::handle);
+
+    app.mount(article::Article::handle);
+
+    app.mount(collect::Collect::handle);
 
     app.use_middleware(middleware::cors);
 
     app.use_middleware(middleware::log);
 
-    app.run("0.0.0.0:8000")?;
-    //app.run_tls("0.0.0.0:443", "/etc/letsencrypt/live/api.main.run/fullchain.pem", "/etc/letsencrypt/live/api.main.run/privkey_rsa.pem").unwrap();
+    app.run("127.0.0.1:9001", 20)?;
 
     Ok(())
 }

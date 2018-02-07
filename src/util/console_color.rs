@@ -100,7 +100,6 @@ impl<T> Print<T>
         self.background = color;
         self
     }
-
 }
 
 impl<T: Display> fmt::Display for Print<T> {
@@ -116,6 +115,7 @@ impl<T: Display> fmt::Display for Print<T> {
         if self.foreground != Color::Unset {
             write!(f, "3")?;
             self.foreground.fmt(f)?;
+            write!(f, ";1")?;
         }
 
         write!(f, "m")?;

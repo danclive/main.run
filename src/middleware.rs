@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use sincere::App;
-use sincere::{Context, Value};
+use sincere::app::App;
+use sincere::app::context::{Context, Value};
 use sincere::http::Method;
 
 use chrono::{Local, DateTime};
@@ -11,7 +11,7 @@ use util::console_color::{Print, Color};
 use common::{Response, Empty};
 
 pub fn auth(context: &mut Context) {
-    if let Some(token) = context.request.get_header("Token") {
+    if let Some(token) = context.request.header("Token") {
         match token::verify_token(token) {
             Ok(id) => {
                 context.contexts.insert("id".to_owned(), Value::String(id));
@@ -22,7 +22,7 @@ pub fn auth(context: &mut Context) {
             }
         }
     } else {
-        context.response.status(401);
+        context.response.status_code(401);
         context.stop();
     }
 }
@@ -32,7 +32,7 @@ pub fn cors(app: &mut App) {
     app.begin(move |context| {
         if context.request.method() == &Method::Options {
             context.response
-            .status(204)
+            .status_code(204)
             .header(("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"));
 
             context.stop();
@@ -57,7 +57,7 @@ pub fn log(app: &mut App) {
 
         let time_now: DateTime<Local> = Local::now();
 
-        let status_code = context.response.status_code.as_ref();
+        let status_code = context.response.get_status_code();
 
         let now_instant = Instant::now();
 
@@ -76,7 +76,7 @@ pub fn log(app: &mut App) {
 
         let method = context.request.method();
 
-        let path = context.request.path();
+        let path = context.request.uri();
 
         let status = match status_code / 100 {
             1 => Print::white(status_code.to_string()).background(Color::Blue),

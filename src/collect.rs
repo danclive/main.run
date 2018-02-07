@@ -1,8 +1,8 @@
 use std::i64;
 use std::str::FromStr;
 
-use sincere::Context;
-use sincere::Group;
+use sincere::app::context::Context;
+use sincere::app::Group;
 
 use mon::coll::options::FindOptions;
 use mon::oid::ObjectId;
@@ -21,8 +21,8 @@ pub struct Collect;
 impl Collect {
 
     hand!(list ,{|context: &mut Context| {
-        let page = context.request.get_query("page").unwrap_or("1".to_owned());
-        let per_page = context.request.get_query("per_page").unwrap_or("10".to_owned());
+        let page = context.request.query("page").unwrap_or("1".to_owned());
+        let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
 
         let page = i64::from_str(&page)?;
         let per_page = i64::from_str(&per_page)?;
@@ -34,7 +34,7 @@ impl Collect {
 
         let collects = model::Collect::find(None, Some(collect_find_option))?;
 
-        let collect_count = model::Article::count(None, None)?;
+        let collect_count = model::Collect::count(None, None)?;
 
         let mut collects_json = Vec::new();
 
@@ -58,7 +58,7 @@ impl Collect {
     }});
 
     hand!(detail, {|context: &mut Context| {
-        let collect_id = context.request.get_param("id").unwrap();
+        let collect_id = context.request.param("id").unwrap();
 
         let collect = model::Collect::find_by_id(ObjectId::with_string(&collect_id)?, None, None)?;
 
@@ -109,7 +109,7 @@ impl Collect {
     }});
 
     hand!(update, {|context: &mut Context| {
-        let collect_id = context.request.get_param("id").unwrap();
+        let collect_id = context.request.param("id").unwrap();
 
         #[derive(Deserialize, Debug)]
         struct Update {
@@ -146,7 +146,7 @@ impl Collect {
     }});
 
     hand!(push, {|context: &mut Context| {
-        let collect_id = context.request.get_param("id").unwrap();
+        let collect_id = context.request.param("id").unwrap();
 
         #[derive(Deserialize, Debug)]
         struct Push {
@@ -179,7 +179,7 @@ impl Collect {
     }});
 
     hand!(remove, {|context: &mut Context| {
-        let collect_id = context.request.get_param("id").unwrap();
+        let collect_id = context.request.param("id").unwrap();
 
         #[derive(Deserialize, Debug)]
         struct Remove {

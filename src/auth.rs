@@ -1,5 +1,5 @@
-use sincere::Context;
-use sincere::Group;
+use sincere::app::context::Context;
+use sincere::app::Group;
 use ring::digest::{self, SHA256};
 
 use mon::bson::spec::BinarySubtype;
