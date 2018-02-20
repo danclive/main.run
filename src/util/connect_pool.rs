@@ -110,15 +110,13 @@ impl<T> Deref for PooledConn<T> {
 }
 
 
-//     let conn_pool = ConnectPool::with_size(|| {
-//         Ok(Connection::connect("", TlsMode::None).unwrap())
-//     }, 5);
 
-//     let pool = conn_pool.clone();
+    // let conn_pool = ConnectPool::with_size(|| {
+    //     Ok(Connection::connect("127.0.0.1:5433", TlsMode::None).unwrap())
+    // }, 5);
 
-//     let conn = pool.acquire_conn().unwrap();
+    // let pool = conn_pool.clone();
 
-//     conn.execute("", &[]);
+    // let conn = pool.acquire_conn().unwrap();
 
-
-
+    // conn.execute("SELECT * FROM table", &[]);

@@ -20,7 +20,7 @@ pub struct Collect;
 
 impl Collect {
 
-    hand!(list ,{|context: &mut Context| {
+    hand!(list, {|context: &mut Context| {
         let page = context.request.query("page").unwrap_or("1".to_owned());
         let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
 
