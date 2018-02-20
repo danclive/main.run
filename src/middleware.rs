@@ -3,11 +3,11 @@ use std::time::Instant;
 use sincere::app::App;
 use sincere::app::context::{Context, Value};
 use sincere::http::Method;
+use sincere::log::color::{Print, Color};
 
 use chrono::{Local, DateTime};
 
 use util::token;
-use util::console_color::{Print, Color};
 use common::{Response, Empty};
 
 pub fn auth(context: &mut Context) {
@@ -88,10 +88,14 @@ pub fn log(app: &mut App) {
         };
 
         println!(
-            "{} {} {} {:>5} | {} {}",
+            "{} {} {}{}{} {:>5} {} {} {}",
             Print::green("[MAIN.RUN]"),
             Print::green(time_now.format("%Y/%m/%d - %H:%M:%S %z").to_string()),
-            status, Print::green(s),
+            Print::green("|"),
+            status,
+            Print::green("|"),
+            Print::green(s),
+            Print::green("|"),
             Print::green(method),
             Print::green(path)
         );

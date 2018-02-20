@@ -1,5 +1,6 @@
 use std::sync::{Arc, Condvar, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::ops::Deref;
 
 use postgres::Connection;
 use postgres::TlsMode;
@@ -39,6 +40,15 @@ impl Drop for PooledConn {
             locked.conns.push(self.conn.take().unwrap());
             self.wait_lock.notify_one();
         }
+    }
+}
+
+impl Deref for PooledConn {
+    type Target = Connection;
+
+    #[inline]
+    fn deref(&self) -> &Connection {
+        self.conn.as_ref().unwrap()
     }
 }
 
@@ -99,6 +109,16 @@ impl ConnectionPool {
             locked = self.wait_lock.wait(locked).unwrap();
         }
     }
+}
+
+pub fn aaa() {
+    let pool = ConnectionPool::new("postgresql://postgres:123456@localhost");
+
+    let pool = pool.clone();
+
+    let conn = pool.acquire_conn().unwrap();
+
+    conn.execute("", &[]);
 }
 
     // let pool = util::posrgres_pool::ConnectionPool::new("postgresql://postgres:123456@localhost");

@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate sincere;
 extern crate sincere_token;
 #[macro_use]
@@ -15,10 +16,12 @@ extern crate chrono;
 extern crate postgres;
 
 use sincere::app::App;
+use sincere::log;
 use mon::client::Client;
 use mon::db::Database;
 
 use error::Result;
+
 #[macro_use]
 mod macros;
 mod error;
@@ -40,9 +43,18 @@ lazy_static! {
 
 fn start() -> Result<()> {
 
+    // ERROR!(target: "build_helper", "error message");
+    // WARN!("warn message");
+    // INFO!("info message");
+    // DEBUG!("debug message");
+    // TRACE!("trace message");
+
+    // DEBUG!("name: {}, age: {}", "haha", 20);
+
     let mut app = App::new();
 
     app.get("/", |context| {
+        //DEBUG!("{:?}", context.request.headers());
         context.response.from_text("hello world!").unwrap();
     });
 
@@ -85,6 +97,9 @@ fn start() -> Result<()> {
 
 fn main() {
     println!("Hello, world!");
+
+    #[cfg(debug_assertions)]
+    log::init(log::Level::Debug, &log::DefaultLogger);
 
     start().expect("can't start the server");
 }
