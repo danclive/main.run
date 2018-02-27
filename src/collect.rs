@@ -20,7 +20,7 @@ pub struct Collect;
 
 impl Collect {
 
-    hand!(list, {|context: &mut Context| {
+    hand!(collects, {|context: &mut Context| {
         let page = context.request.query("page").unwrap_or("1".to_owned());
         let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
 
@@ -203,15 +203,23 @@ impl Collect {
         Ok(Response::<Empty>::success(None))
     }});
 
+    hand!(articles, {|context: &mut Context| {
+        let _page = context.request.query("page").unwrap_or("1".to_owned());
+        let _per_page = context.request.query("per_page").unwrap_or("10".to_owned());
+
+        Ok(Response::<Empty>::success(None))
+    }});
+
     pub fn handle() -> Group {
         let mut group = Group::new("/collect");
 
-        group.get("/", Self::list);
+        group.get("/", Self::collects);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::new).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}/push", Self::push).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}/remove", Self::remove).before(middleware::auth);
+        group.get("/{id:[a-z0-9]{24}}/articles", Self::articles);
 
         group
     }

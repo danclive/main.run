@@ -20,7 +20,7 @@ pub struct Article;
 
 impl Article {
 
-    hand!(list, {|context:  &mut Context| {
+    hand!(articles, {|context:  &mut Context| {
         let page = context.request.query("page").unwrap_or("1".to_owned());
         let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
 
@@ -178,7 +178,7 @@ impl Article {
     pub fn handle() -> Group {
         let mut group = Group::new("/article");
 
-        group.get("/", Self::list);
+        group.get("/", Self::articles);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::new).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);

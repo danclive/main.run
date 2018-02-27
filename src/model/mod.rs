@@ -62,6 +62,7 @@ pub struct Collect {
     pub name: String,
     pub description: String,
     pub image: Vec<String>,
+    #[serde(default)]
     pub articles_id: Vec<ObjectId>,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
