@@ -5,11 +5,11 @@ use std::error;
 use std::num;
 
 use sincere;
-use mon;
-use mon::bson::doc;
-use mon::bson::encode::EncodeError;
-use mon::bson::decode::DecodeError;
-use mon::oid;
+use mongors;
+use mongors::bson::doc;
+use mongors::bson::encode::EncodeError;
+use mongors::bson::decode::DecodeError;
+use mongors::object_id;
 use sincere_token;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -19,13 +19,13 @@ pub enum Error {
     IoError(io::Error),
     Sincere(sincere::Error),
     CodedError(ErrorCode),
-    MonError(mon::Error),
+    MonError(mongors::error::Error),
     TokenError(sincere_token::Error),
     DocError(doc::Error),
     BsonEncodeError(EncodeError),
     BsonDecodeError(DecodeError),
     ParseIntError(num::ParseIntError),
-    ObjectIdError(oid::Error),
+    ObjectIdError(object_id::Error),
     Message(String)
 }
 
@@ -41,8 +41,8 @@ impl From<sincere::Error> for Error {
     }
 }
 
-impl From<mon::Error> for Error {
-    fn from(err: mon::Error) -> Error {
+impl From<mongors::error::Error> for Error {
+    fn from(err: mongors::error::Error) -> Error {
         Error::MonError(err)
     }
 }
@@ -83,8 +83,8 @@ impl From<num::ParseIntError> for Error {
     }
 }
 
-impl From<oid::Error> for Error {
-    fn from(err: oid::Error) -> Error {
+impl From<object_id::Error> for Error {
+    fn from(err: object_id::Error) -> Error {
         Error::ObjectIdError(err)
     }
 }

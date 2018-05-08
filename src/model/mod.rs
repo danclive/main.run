@@ -1,6 +1,6 @@
-use mon::oid::ObjectId;
-use mon::bson::bson::UTCDateTime;
-use mon::db::Database;
+use mongors::object_id::ObjectId;
+use mongors::bson::bson::UTCDateTime;
+use mongors::db::Database;
 
 use serde_bytes;
 
@@ -26,13 +26,7 @@ pub struct User {
     pub update_at: UTCDateTime
 }
 
-impl StructDocument for User {
-    const NAME: &'static str = "user";
-
-    fn get_database() -> Database {
-        DB.clone()
-    }
-}
+model!(User, "user");
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Article {
@@ -41,19 +35,17 @@ pub struct Article {
     pub title: String,
     pub image: Vec<String>,
     pub author_id: ObjectId,
+    #[serde(default)]
+    pub collect_ids: Vec<ObjectId>,
     pub content: String,
+    #[serde(default)]
+    pub summary: String,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
     pub status: i32
 }
 
-impl StructDocument for Article {
-    const NAME: &'static str = "article";
-
-    fn get_database() -> Database {
-        DB.clone()
-    }
-}
+model!(Article, "article");
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Collect {
@@ -62,16 +54,25 @@ pub struct Collect {
     pub name: String,
     pub description: String,
     pub image: Vec<String>,
-    #[serde(default)]
-    pub articles_id: Vec<ObjectId>,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
 }
 
-impl StructDocument for Collect {
-    const NAME: &'static str = "collect";
+model!(Collect, "collect");
 
-    fn get_database() -> Database {
-        DB.clone()
-    }
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Media {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    pub filename: String,
+    pub filesize: i32,
+    pub mime_type: String,
+    pub extension: String,
+    #[serde(default)]
+    pub width: i32,
+    #[serde(default)]
+    pub height: i32,
+    pub hash: String
 }
+
+model!(Media, "media");

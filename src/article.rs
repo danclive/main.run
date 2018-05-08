@@ -4,8 +4,8 @@ use std::str::FromStr;
 use sincere::app::context::Context;
 use sincere::app::Group;
 
-use mon::coll::options::FindOptions;
-use mon::oid::ObjectId;
+use mongors::collection::options::FindOptions;
+use mongors::object_id::ObjectId;
 
 use chrono::Utc;
 use chrono::Local;
@@ -40,9 +40,9 @@ impl Article {
         article_find_option.limit = Some(per_page);
         article_find_option.skip = Some((page - 1) * per_page);
 
-        let articles = model::Article::find(Some(article_find), Some(article_find_option))?;
+        let articles = model::Article::find(article_find, Some(article_find_option))?;
 
-        let articles_count = model::Article::count(None, None)?;
+        let articles_count = model::Article::count(doc!{}, None)?;
 
         let mut articles_json = Vec::new();
 
@@ -51,6 +51,7 @@ impl Article {
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
+                "summary": article.summary,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
             }));
@@ -72,7 +73,7 @@ impl Article {
             "status": 0
         };
 
-        let article = model::Article::find_one(Some(article_find), None)?;
+        let article = model::Article::find_one(article_find, None)?;
 
         match article {
             None => return Err(ErrorCode(10004).into()),
@@ -82,11 +83,12 @@ impl Article {
                     "title": doc.title,
                     "image": doc.image,
                     "content": doc.content,
+                    "summary": doc.summary,
                     "create_at": doc.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 });
 
-                let collects = model::Collect::find(Some(doc!{"articles_id": (doc.id)}), None)?;
+                let collects = model::Collect::find(doc!{"articles_id": doc.id}, None)?;
 
                 let mut collect_json = Vec::new();
 
@@ -105,13 +107,15 @@ impl Article {
     }});
 
     hand!(new, {|context: &mut Context| {
-        let user_id = context.contexts.get("id").unwrap().as_str().unwrap();
+        let user_id = context.contexts.get_str("id").unwrap_or("");
 
         #[derive(Deserialize, Debug)]
         struct New {
             title: String,
             image: Vec<String>,
-            content: String
+            content: String,
+            #[serde(default)]
+            summary: String
         }
 
         let new_json = context.request.bind_json::<New>()?;
@@ -121,7 +125,9 @@ impl Article {
             title: new_json.title,
             image: new_json.image,
             author_id: ObjectId::with_string(&user_id)?,
+            collect_ids: Vec::new(),
             content: new_json.content,
+            summary: new_json.summary,
             create_at: Utc::now().into(),
             update_at: Utc::now().into(),
             status: 0
@@ -143,7 +149,9 @@ impl Article {
         struct Update {
             title: String,
             image: Vec<String>,
-            content: String
+            content: String,
+            #[serde(default)]
+            summary: String
         }
 
         let update_json = context.request.bind_json::<Update>()?;
@@ -152,7 +160,7 @@ impl Article {
             "_id": (ObjectId::with_string(&article_id)?)
         };
 
-        let article = model::Article::find_one(Some(article_find), None)?;
+        let article = model::Article::find_one(article_find, None)?;
 
         match article {
             None => return Err(ErrorCode(10004).into()),
@@ -160,6 +168,7 @@ impl Article {
                 doc.title = update_json.title;
                 doc.image = update_json.image;
                 doc.content = update_json.content;
+                doc.summary = update_json.summary;
                 doc.update_at = Utc::now().into();
 
                 doc.save(None)?;

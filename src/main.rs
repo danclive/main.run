@@ -2,7 +2,7 @@
 extern crate sincere;
 extern crate sincere_token;
 #[macro_use]
-extern crate mon;
+extern crate mongors;
 #[macro_use]
 extern crate lazy_static;
 extern crate serde;
@@ -20,8 +20,8 @@ extern crate qiniu;
 use sincere::app::App;
 use sincere::log;
 
-use mon::client::Client;
-use mon::db::Database;
+use mongors::client::MongoClient;
+use mongors::db::Database;
 
 use error::Result;
 
@@ -38,10 +38,9 @@ mod middleware;
 mod struct_document;
 mod model;
 
-
 lazy_static! {
     static ref DB: Database = {
-        Client::with_uri("mongodb://127.0.0.1:27017").expect("Failed to initialize client.").db("main-run")
+        MongoClient::with_uri("mongodb://116.85.47.167:30000").expect("Failed to initialize client.").db("main-run")
     };
 
     static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
@@ -55,7 +54,7 @@ fn start() -> Result<()> {
     // DEBUG!("debug message");
     // TRACE!("trace message");
 
-    // DEBUG!("name: {}, age: {}", "haha", 20);
+    DEBUG!("name: {}, age: {}", "haha", 20);
 
     let mut app = App::new();
 
@@ -72,27 +71,37 @@ fn start() -> Result<()> {
         context.response.from_text("hello world!").unwrap();
     });
 
-    app.mount(auth::Auth::handle);
+    app.mount("/user", auth::Auth::handle);
 
-    app.mount(article::Article::handle);
+    app.mount_group(article::Article::handle());
 
-    app.mount(collect::Collect::handle);
+    app.mount_group(collect::Collect::handle());
 
-    app.mount(media::Media::handle);
+    app.mount_group(media::Media::handle());
 
-    app.use_middleware(middleware::cors);
+    app.middleware(middleware::cors);
 
-    app.use_middleware(middleware::log);
+    app.middleware(middleware::log);
 
-    app.run("127.0.0.1:9001", 20)?;
+    app.run("0.0.0.0:10001", 20)?;
 
     Ok(())
 }
 
+use std::any::Any;
+
+
 fn main() {
 
-    #[cfg(debug_assertions)]
-    log::init(log::Level::Debug, &log::DefaultLogger);
+    let mut a: Vec<Box<Any>> = Vec::new();
 
-    start().expect("can't start the server");
+    a.push(Box::new("aaa"));
+    a.push(Box::new(123));
+
+    println!("{:?}", a[0].is::<&str>());
+
+    //#[cfg(debug_assertions)]
+    //log::init(log::Level::Debug, &log::DefaultLogger);
+
+    //start().expect("can't start the server");
 }

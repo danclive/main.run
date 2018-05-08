@@ -1,14 +1,13 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use mon::bson::{self, Bson, Document};
-use mon::db::Database;
-use mon::bson::encode::EncodeError;
-use mon::coll::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
-use mon::common::WriteConcern;
-use mon::coll::results::UpdateResult;
-use mon::error::Error::WriteError;
-use mon::common::merge_options;
+use mongors::bson::{self, Bson, Document};
+use mongors::db::Database;
+use mongors::bson::encode::EncodeError;
+use mongors::collection::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
+use mongors::common::WriteConcern;
+use mongors::collection::results::UpdateResult;
+use mongors::error::Error::WriteError;
 
 use error::Result;
 
@@ -41,7 +40,8 @@ pub trait StructDocument: Serialize + DeserializeOwned {
 
         let options = UpdateOptions {
             upsert: Some(true),
-            write_concern: write_concern
+            write_concern: write_concern,
+            ..Default::default()
         };
 
         let result = database.collection(Self::NAME).replace_one(doc!{"_id": id}, doc, Some(options))?;
@@ -58,19 +58,19 @@ pub trait StructDocument: Serialize + DeserializeOwned {
     {
         let database = Self::get_database();
 
-        let mut filter_doc = doc!{"_id": (id.into())};
+        let mut filter_doc = doc!{"_id": id.into()};
 
         if let Some(filter) = filter {
-            filter_doc = merge_options(filter_doc, filter);
+            filter_doc.extend(filter);
         }
 
-        match database.collection(Self::NAME).find_one(Some(filter_doc), options)? {
+        match database.collection(Self::NAME).find_one(filter_doc, options)? {
             Some(doc) => Ok(Some(Self::from_document(doc)?)),
             None => Ok(None)
         }
     }
 
-    fn find_one(filter: Option<Document>, options: Option<FindOptions>) -> Result<Option<Self>> {
+    fn find_one(filter: Document, options: Option<FindOptions>) -> Result<Option<Self>> {
         let database = Self::get_database();
 
         match database.collection(Self::NAME).find_one(filter, options)? {
@@ -79,7 +79,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         }
     }
 
-    fn find(filter: Option<Document>, options: Option<FindOptions>) -> Result<Vec<Self>> {
+    fn find(filter: Document, options: Option<FindOptions>) -> Result<Vec<Self>> {
         let database = Self::get_database();
 
         let doc_find = database.collection(Self::NAME).find(filter, options)?;
@@ -95,7 +95,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         Ok(docs)
     }
 
-    fn count(filter: Option<Document>, options: Option<CountOptions>) -> Result<i64> {
+    fn count(filter: Document, options: Option<CountOptions>) -> Result<i64> {
         let database = Self::get_database();
 
         Ok(database.collection(Self::NAME).count(filter, options)?)
@@ -117,7 +117,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         Ok(docs)
     }
 
-    fn distinct(field_name: &str, filter: Option<Document>, options: Option<DistinctOptions>) -> Result<Vec<Bson>> {
+    fn distinct(field_name: &str, filter: Document, options: Option<DistinctOptions>) -> Result<Vec<Bson>> {
         let database = Self::get_database();
 
         Ok(database.collection(Self::NAME).distinct(field_name, filter, options)?)

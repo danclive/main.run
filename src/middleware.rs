@@ -1,11 +1,9 @@
-use std::time::Instant;
-
 use sincere::app::App;
-use sincere::app::context::{Context, Value};
+use sincere::app::context::Context;
 use sincere::http::Method;
 use sincere::log::color::{Print, Color};
 
-use chrono::{Local, DateTime};
+use chrono::{Local, Utc, DateTime};
 
 use util::token;
 use common::{Response, Empty};
@@ -14,7 +12,7 @@ pub fn auth(context: &mut Context) {
     if let Some(token) = context.request.header("Token") {
         match token::verify_token(token) {
             Ok(id) => {
-                context.contexts.insert("id".to_owned(), Value::String(id));
+                context.contexts.insert("id".to_owned(), id);
             },
             Err(err) => {
                 context.response.from_json(Response::<Empty>::error(err)).unwrap();
@@ -49,30 +47,30 @@ pub fn cors(app: &mut App) {
 pub fn log(app: &mut App) {
 
     app.begin(move |context| {
-        context.contexts.insert("instant".to_owned(), Value::Instant(Instant::now()));
+        let data_time: DateTime<Utc> = Utc::now();
+
+        context.contexts.insert("time".to_owned(), data_time);
     });
 
     app.finish(move |context| {
-        let start_instant = context.contexts.get("instant").unwrap().as_instant().unwrap();
+        let start_time = context.contexts.get_utc_datetime("time").unwrap();
 
-        let time_now: DateTime<Local> = Local::now();
+        let now_time: DateTime<Utc> = Utc::now();
 
-        let status_code = context.response.get_status_code();
+        let duration = now_time.signed_duration_since(*start_time);
 
-        let now_instant = Instant::now();
-
-        let duration = now_instant - *start_instant;
-
-        let s = duration.as_secs();
-        let ms = duration.subsec_nanos() / (1000 * 1000);
+        let s = duration.num_seconds();
+        let ms = duration.num_nanoseconds().unwrap_or(0) / (1000 * 1000);
 
         let s = if s != 0 {
             format!("{}s", s)
         } else if ms != 0 {
             format!("{}ms", ms)
         } else {
-            format!("{}us", duration.subsec_nanos() / 1000)
+            format!("{}us", duration.num_nanoseconds().unwrap_or(0) / 1000)
         };
+
+        let status_code = context.response.get_status_code();
 
         let method = context.request.method();
 
@@ -90,7 +88,7 @@ pub fn log(app: &mut App) {
         println!(
             "{} {} {}{}{} {:>5} {} {} {}",
             Print::green("[MAIN.RUN]"),
-            Print::green(time_now.format("%Y/%m/%d - %H:%M:%S %z").to_string()),
+            Print::green(now_time.with_timezone(&Local).format("%Y/%m/%d - %H:%M:%S %z").to_string()),
             Print::green("|"),
             status,
             Print::green("|"),

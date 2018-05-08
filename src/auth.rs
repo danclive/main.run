@@ -2,8 +2,8 @@ use sincere::app::context::Context;
 use sincere::app::Group;
 use ring::digest::{self, SHA256};
 
-use mon::bson::spec::BinarySubtype;
-use mon::oid::ObjectId;
+use mongors::bson::spec::BinarySubtype;
+use mongors::object_id::ObjectId;
 
 use chrono::Utc;
 
@@ -39,7 +39,7 @@ impl Auth {
             "password": (BinarySubtype::Generic, actual.as_ref().to_vec())
         };
 
-        let user = model::User::find_one(Some(doc), None)?;
+        let user = model::User::find_one(doc, None)?;
 
         match user {
             None => return Err(ErrorCode(20002).into()),
@@ -63,7 +63,7 @@ impl Auth {
             "username": (logon_json.username.clone())
         };
 
-        if let Some(_) = model::User::find_one(Some(doc), None)? {
+        if let Some(_) = model::User::find_one(doc, None)? {
             return Err(ErrorCode(20003).into());
         }
 
@@ -84,12 +84,12 @@ impl Auth {
         Ok(Response::<Empty>::success(None))
     }});
 
-    pub fn handle() -> Group {
-        let mut group = Group::new("/user");
+    pub fn handle(group: &mut Group) {
+        //let mut group = Group::new("/user");
 
         group.post("/login", Self::login);
         group.post("/logon", Self::logon);
 
-        group
+        //group
     }
 }
