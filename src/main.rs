@@ -40,7 +40,7 @@ mod model;
 
 lazy_static! {
     static ref DB: Database = {
-        MongoClient::with_uri("mongodb://116.85.47.167:30000").expect("Failed to initialize client.").db("main-run")
+        MongoClient::with_uri("mongodb://10.254.195.96:30000").expect("Failed to initialize client.").db("main-run")
     };
 
     static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
@@ -88,20 +88,10 @@ fn start() -> Result<()> {
     Ok(())
 }
 
-use std::any::Any;
-
-
 fn main() {
 
-    let mut a: Vec<Box<Any>> = Vec::new();
+    #[cfg(debug_assertions)]
+    log::init(log::Level::Debug, &log::DefaultLogger);
 
-    a.push(Box::new("aaa"));
-    a.push(Box::new(123));
-
-    println!("{:?}", a[0].is::<&str>());
-
-    //#[cfg(debug_assertions)]
-    //log::init(log::Level::Debug, &log::DefaultLogger);
-
-    //start().expect("can't start the server");
+    start().expect("can't start the server");
 }

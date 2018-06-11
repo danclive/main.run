@@ -19,7 +19,7 @@ pub enum Error {
     IoError(io::Error),
     Sincere(sincere::Error),
     CodedError(ErrorCode),
-    MonError(mongors::error::Error),
+    MongoError(mongors::error::Error),
     TokenError(sincere_token::Error),
     DocError(doc::Error),
     BsonEncodeError(EncodeError),
@@ -43,7 +43,7 @@ impl From<sincere::Error> for Error {
 
 impl From<mongors::error::Error> for Error {
     fn from(err: mongors::error::Error) -> Error {
-        Error::MonError(err)
+        Error::MongoError(err)
     }
 }
 
@@ -95,7 +95,7 @@ impl fmt::Display for Error {
             Error::IoError(ref inner) => inner.fmt(fmt),
             Error::Sincere(ref inner) => inner.fmt(fmt),
             Error::CodedError(ref inner) => inner.fmt(fmt),
-            Error::MonError(ref inner) => inner.fmt(fmt),
+            Error::MongoError(ref inner) => inner.fmt(fmt),
             Error::TokenError(ref inner) => inner.fmt(fmt),
             Error::DocError(ref inner) => inner.fmt(fmt),
             Error::BsonEncodeError(ref inner) => inner.fmt(fmt),
@@ -113,7 +113,7 @@ impl error::Error for Error {
             Error::IoError(ref err) => err.description(),
             Error::Sincere(ref err) => err.description(),
             Error::CodedError(ref err) => err.to_str(),
-            Error::MonError(ref err) => err.description(),
+            Error::MongoError(ref err) => err.description(),
             Error::TokenError(ref err) => err.description(),
             Error::DocError(ref err) => err.description(),
             Error::BsonEncodeError(ref err) => err.description(),
@@ -129,7 +129,7 @@ impl error::Error for Error {
             Error::IoError(ref err) => Some(err),
             Error::Sincere(ref err) => Some(err),
             Error::CodedError(_) => None,
-            Error::MonError(ref err) => Some(err),
+            Error::MongoError(ref err) => Some(err),
             Error::TokenError(ref err) => Some(err),
             Error::DocError(ref err) => Some(err),
             Error::BsonEncodeError(ref err) => Some(err),
