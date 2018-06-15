@@ -18,12 +18,11 @@ extern crate reqwest;
 extern crate qiniu;
 
 use sincere::app::App;
+use sincere::app::run;
 use sincere::log;
 
 use mongors::client::MongoClient;
 use mongors::db::Database;
-
-use error::Result;
 
 #[macro_use]
 mod macros;
@@ -44,17 +43,17 @@ lazy_static! {
     };
 
     static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
+
+    static ref APP: App = start();
 }
 
-fn start() -> Result<()> {
+fn start() -> App {
 
     // ERROR!(target: "build_helper", "error message");
     // WARN!("warn message");
     // INFO!("info message");
     // DEBUG!("debug message");
     // TRACE!("trace message");
-
-    DEBUG!("name: {}, age: {}", "haha", 20);
 
     let mut app = App::new();
 
@@ -83,9 +82,7 @@ fn start() -> Result<()> {
 
     app.middleware(middleware::log);
 
-    app.run("0.0.0.0:10001", 20)?;
-
-    Ok(())
+    app
 }
 
 fn main() {
@@ -93,5 +90,5 @@ fn main() {
     #[cfg(debug_assertions)]
     log::init(log::Level::Debug, &log::DefaultLogger);
 
-    start().expect("can't start the server");
+    run("0.0.0.0:10001", 20, &APP).unwrap();
 }

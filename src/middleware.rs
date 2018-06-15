@@ -28,7 +28,7 @@ pub fn auth(context: &mut Context) {
 pub fn cors(app: &mut App) {
     
     app.begin(move |context| {
-        if context.request.method() == &Method::Options {
+        if context.request.method() == &Method::OPTIONS {
             context.response
             .status_code(204)
             .header(("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"));
