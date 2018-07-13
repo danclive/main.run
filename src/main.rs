@@ -16,6 +16,7 @@ extern crate chrono;
 extern crate postgres;
 extern crate reqwest;
 extern crate qiniu;
+extern crate string2;
 
 use sincere::app::App;
 use sincere::app::run;

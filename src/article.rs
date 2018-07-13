@@ -1,5 +1,6 @@
 use std::i64;
 use std::str::FromStr;
+use std::cmp;
 
 use sincere::app::context::Context;
 use sincere::app::Group;
@@ -9,6 +10,8 @@ use mongors::object_id::ObjectId;
 
 use chrono::Utc;
 use chrono::Local;
+
+use string2::String2;
 
 use common::{Response, Empty};
 use middleware;
@@ -47,11 +50,22 @@ impl Article {
         let mut articles_json = Vec::new();
 
         for article in articles {
+
+            let summary = if !article.summary.is_empty() {
+                article.summary
+            } else {
+                let content = String2::from(article.content);
+                let min = cmp::min(350, content.len());
+                let summary: String2 = content[0..min].into();
+
+                summary.into()
+            };
+
             articles_json.push(json!({
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
-                "summary": article.summary,
+                "summary": summary,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
             }));

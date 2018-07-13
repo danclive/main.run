@@ -37,6 +37,7 @@ pub struct Article {
     pub author_id: ObjectId,
     #[serde(default)]
     pub collect_ids: Vec<ObjectId>,
+    #[serde(default)]
     pub content: String,
     #[serde(default)]
     pub summary: String,
