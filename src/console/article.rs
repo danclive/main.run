@@ -119,7 +119,7 @@ impl Article {
             }
         }
     }});
-/*
+
     hand!(new, {|context: &mut Context| {
         let user_id = context.contexts.get_str("id").unwrap_or("");
 
@@ -195,16 +195,16 @@ impl Article {
             }
         }
     }});
-*/
+
     // delete
 
     pub fn handle() -> Group {
-        let mut group = Group::new("/article");
+        let mut group = Group::new("/console/article");
 
         group.get("/", Self::articles);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
-        //group.post("/", Self::new).before(middleware::auth);
-        //group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
+        group.post("/", Self::new).before(middleware::auth);
+        group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
 
         group
     }

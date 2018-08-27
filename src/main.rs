@@ -37,6 +37,7 @@ mod media;
 mod middleware;
 mod struct_document;
 mod model;
+mod console;
 
 lazy_static! {
     static ref DB: Database = {
@@ -74,6 +75,7 @@ fn start() -> App {
     app.mount("/user", auth::Auth::handle);
 
     app.mount_group(article::Article::handle());
+    app.mount_group(console::article::Article::handle());
 
     app.mount_group(collect::Collect::handle());
 
