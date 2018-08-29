@@ -31,7 +31,7 @@ impl Article {
         let per_page = i64::from_str(&per_page)?;
 
         let article_find = doc!{
-            "status": 0
+            "status": { "$lte": 2 }
         };
 
         let mut article_find_option = FindOptions::default();
@@ -51,21 +51,12 @@ impl Article {
 
         for article in articles {
 
-            let summary = if !article.summary.is_empty() {
-                article.summary
-            } else {
-                let content = String2::from(article.content);
-                let min = cmp::min(350, content.len());
-                let summary: String2 = content[0..min].into();
-
-                summary.into()
-            };
-
             articles_json.push(json!({
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
-                "summary": summary,
+                "summary": article.summary,
+                "status": article.status,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
             }));
@@ -83,8 +74,7 @@ impl Article {
         let article_id = context.request.param("id").unwrap();
 
         let article_find = doc!{
-            "_id": (ObjectId::with_string(&article_id)?),
-            "status": 0
+            "_id": (ObjectId::with_string(&article_id)?)
         };
 
         let article = model::Article::find_one(article_find, None)?;
@@ -98,6 +88,7 @@ impl Article {
                     "image": doc.image,
                     "content": doc.content,
                     "summary": doc.summary,
+                    "status": doc.status,
                     "create_at": doc.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                     "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 });

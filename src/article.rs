@@ -1,6 +1,5 @@
 use std::i64;
 use std::str::FromStr;
-use std::cmp;
 
 use sincere::app::context::Context;
 use sincere::app::Group;
@@ -8,13 +7,9 @@ use sincere::app::Group;
 use mongors::collection::options::FindOptions;
 use mongors::object_id::ObjectId;
 
-use chrono::Utc;
 use chrono::Local;
 
-use string2::String2;
-
 use common::{Response, Empty};
-use middleware;
 use model;
 use struct_document::StructDocument;
 use error::ErrorCode;
@@ -50,22 +45,11 @@ impl Article {
         let mut articles_json = Vec::new();
 
         for article in articles {
-
-            let summary = if !article.summary.is_empty() {
-                article.summary
-            } else {
-                let content = String2::from(article.content);
-                let min = cmp::min(350, content.len());
-                let summary: String2 = content[0..min].into();
-
-                summary.into()
-            };
-
             articles_json.push(json!({
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
-                "summary": summary,
+                "summary": article.summary,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
             }));
@@ -119,92 +103,12 @@ impl Article {
             }
         }
     }});
-/*
-    hand!(new, {|context: &mut Context| {
-        let user_id = context.contexts.get_str("id").unwrap_or("");
-
-        #[derive(Deserialize, Debug)]
-        struct New {
-            title: String,
-            image: Vec<String>,
-            content: String,
-            #[serde(default)]
-            summary: String
-        }
-
-        let new_json = context.request.bind_json::<New>()?;
-
-        let article = model::Article {
-            id: ObjectId::new()?,
-            title: new_json.title,
-            image: new_json.image,
-            author_id: ObjectId::with_string(&user_id)?,
-            collect_ids: Vec::new(),
-            content: new_json.content,
-            summary: new_json.summary,
-            create_at: Utc::now().into(),
-            update_at: Utc::now().into(),
-            status: 0
-        };
-
-        article.save(None)?;
-
-        let return_json = json!({
-            "article_id": article.id.to_hex()
-        });
-
-        Ok(Response::success(Some(return_json)))
-    }});
-
-    hand!(update, {|context: &mut Context| {
-        let article_id = context.request.param("id").unwrap();
-
-        #[derive(Deserialize, Debug)]
-        struct Update {
-            title: String,
-            image: Vec<String>,
-            content: String,
-            #[serde(default)]
-            summary: String
-        }
-
-        let update_json = context.request.bind_json::<Update>()?;
-
-        let article_find = doc!{
-            "_id": (ObjectId::with_string(&article_id)?)
-        };
-
-        let article = model::Article::find_one(article_find, None)?;
-
-        match article {
-            None => return Err(ErrorCode(10004).into()),
-            Some(mut doc) => {
-                doc.title = update_json.title;
-                doc.image = update_json.image;
-                doc.content = update_json.content;
-                doc.summary = update_json.summary;
-                doc.update_at = Utc::now().into();
-
-                doc.save(None)?;
-
-                let return_json = json!({
-                    "article_id": article_id
-                });
-
-                Ok(Response::success(Some(return_json)))
-            }
-        }
-    }});
-*/
-    // delete
 
     pub fn handle() -> Group {
         let mut group = Group::new("/article");
 
         group.get("/", Self::articles);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
-        //group.post("/", Self::new).before(middleware::auth);
-        //group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
 
         group
     }
