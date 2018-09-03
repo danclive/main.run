@@ -7,7 +7,6 @@ authors = ["dangcheng <dangcheng@hotmail.com>"]
 #sincere = "0.5"
 sincere = { path = "../sincere" }
 sincere_token = "0.1"
-#mon = "0.2"
 mongors = { path = "../mongo-rust-driver" }
 lazy_static = "1.0"
 serde = "1.0"

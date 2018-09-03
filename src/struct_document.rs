@@ -2,7 +2,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use mongors::bson::{self, Bson, Document};
-use mongors::db::Database;
+use mongors::database::Database;
 use mongors::bson::encode::EncodeError;
 use mongors::collection::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
 use mongors::common::WriteConcern;

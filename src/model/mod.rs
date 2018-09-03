@@ -1,6 +1,6 @@
 use mongors::object_id::ObjectId;
 use mongors::bson::bson::UTCDateTime;
-use mongors::db::Database;
+use mongors::database::Database;
 
 use serde_bytes;
 

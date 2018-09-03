@@ -23,7 +23,7 @@ use sincere::app::run;
 use sincere::log;
 
 use mongors::client::MongoClient;
-use mongors::db::Database;
+use mongors::database::Database;
 
 #[macro_use]
 mod macros;
