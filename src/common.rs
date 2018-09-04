@@ -1,5 +1,3 @@
-//use std::error::Error as stdError;
-
 use serde::Serialize;
 
 use error::Error;
@@ -29,8 +27,15 @@ impl<D: Serialize> Response<D> {
         }
     }
 
+    pub fn from_message(message: Message) -> Response<D> {
+        Response {
+            success: false,
+            message: Some(message),
+            data: None
+        }
+    }
+
     pub fn error(err: Error) -> Response<D> {
-        #[allow(unreachable_patterns)]
         let message = match err {
             Error::CodedError(error_code) => {
                 Message {

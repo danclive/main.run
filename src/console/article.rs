@@ -1,5 +1,6 @@
 use std::i64;
 use std::str::FromStr;
+use std::collections::HashMap;
 
 use sincere::app::context::Context;
 use sincere::app::Group;
@@ -9,6 +10,8 @@ use mongors::object_id::ObjectId;
 
 use chrono::Utc;
 use chrono::Local;
+
+use serde_json::Value;
 
 use common::{Response, Empty};
 use middleware;
@@ -47,8 +50,7 @@ impl Article {
         let mut articles_json = Vec::new();
 
         for article in articles {
-
-            articles_json.push(json!({
+            let mut article_json = json!({
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
@@ -56,7 +58,24 @@ impl Article {
                 "status": article.status,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
-            }));
+            });
+
+            if !article.collect_ids.is_empty() {
+                let collects = model::Collect::find(doc!{"_id": {"$in": article.collect_ids}}, None)?;
+
+                let mut collect_json = Vec::new();
+
+                for collect in  collects {
+                    collect_json.push(json!({
+                        "id": collect.id.to_hex(),
+                        "name": collect.name
+                    }))
+                }
+
+                article_json["collects"] = json!(collect_json);
+            }
+
+            articles_json.push(article_json);
         }
 
         let return_json = json!({
@@ -71,7 +90,7 @@ impl Article {
         let article_id = context.request.param("id").unwrap();
 
         let article_find = doc!{
-            "_id": (ObjectId::with_string(&article_id)?)
+            "_id": ObjectId::with_string(&article_id)?
         };
 
         let article = model::Article::find_one(article_find, None)?;
@@ -90,18 +109,20 @@ impl Article {
                     "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 });
 
-                let collects = model::Collect::find(doc!{"articles_id": doc.id}, None)?;
+                if !doc.collect_ids.is_empty() {
+                    let collects = model::Collect::find(doc!{"_id": {"$in": doc.collect_ids}}, None)?;
 
-                let mut collect_json = Vec::new();
+                    let mut collect_json = Vec::new();
 
-                for collect in  collects {
-                    collect_json.push(json!({
-                        "id": collect.id.to_hex(),
-                        "name": collect.name
-                    }))
+                    for collect in  collects {
+                        collect_json.push(json!({
+                            "id": collect.id.to_hex(),
+                            "name": collect.name
+                        }))
+                    }
+
+                    return_json["collects"] = json!(collect_json);
                 }
-
-                return_json["collects"] = json!(collect_json);
 
                 Ok(Response::success(Some(return_json)))
             }
@@ -114,20 +135,39 @@ impl Article {
         #[derive(Deserialize, Debug)]
         struct New {
             title: String,
+            #[serde(default)]
             image: Vec<String>,
             content: String,
             #[serde(default)]
-            summary: String
+            summary: String,
+            #[serde(default)]
+            collect_ids: Vec<String>,
+            #[serde(default)]
+            status: i32
         }
 
         let new_json = context.request.bind_json::<New>()?;
+
+        if new_json.status == 3 {
+            return Err(ErrorCode(10005).into())
+        }
+
+        let collect_ids = {
+            let mut temp = Vec::new();
+
+            for o in new_json.collect_ids {
+                temp.push(ObjectId::with_string(&o)?);
+            }
+
+            temp
+        };
 
         let article = model::Article {
             id: ObjectId::new()?,
             title: new_json.title,
             image: new_json.image,
             author_id: ObjectId::with_string(&user_id)?,
-            collect_ids: Vec::new(),
+            collect_ids: collect_ids,
             content: new_json.content,
             summary: new_json.summary,
             create_at: Utc::now().into(),
@@ -135,7 +175,7 @@ impl Article {
             status: 0
         };
 
-        article.save(None)?;
+        article.save()?;
 
         let return_json = json!({
             "article_id": article.id.to_hex()
@@ -150,13 +190,28 @@ impl Article {
         #[derive(Deserialize, Debug)]
         struct Update {
             title: String,
+            #[serde(default)]
             image: Vec<String>,
             content: String,
             #[serde(default)]
-            summary: String
+            summary: String,
+            #[serde(default)]
+            collect_ids: Vec<String>,
+            #[serde(default)]
+            status: i32
         }
 
         let update_json = context.request.bind_json::<Update>()?;
+
+        let collect_ids = {
+            let mut temp = Vec::new();
+
+            for o in update_json.collect_ids {
+                temp.push(ObjectId::with_string(&o)?);
+            }
+
+            temp
+        };
 
         let article_find = doc!{
             "_id": (ObjectId::with_string(&article_id)?)
@@ -171,9 +226,10 @@ impl Article {
                 doc.image = update_json.image;
                 doc.content = update_json.content;
                 doc.summary = update_json.summary;
+                doc.collect_ids = collect_ids;
                 doc.update_at = Utc::now().into();
 
-                doc.save(None)?;
+                doc.save()?;
 
                 let return_json = json!({
                     "article_id": article_id
@@ -182,6 +238,67 @@ impl Article {
                 Ok(Response::success(Some(return_json)))
             }
         }
+    }});
+
+    // patch
+    hand!(patch, {|context: &mut Context| {
+        let article_id = context.request.param("id").unwrap();
+
+        #[derive(Deserialize, Debug)]
+        struct Patch {
+            #[serde(default)]
+            title: String,
+            #[serde(default)]
+            image: Vec<String>,
+            #[serde(default)]
+            content: String,
+            #[serde(default)]
+            summary: String,
+            #[serde(default)]
+            collect_ids: Vec<String>,
+            #[serde(flatten)]
+            extra: HashMap<String, Value>
+        }
+
+        let patch_json = context.request.bind_json::<Patch>()?;
+
+        println!("{:?}", patch_json);
+
+        let mut patch_doc = doc!{};
+
+        if !patch_json.title.is_empty() {
+            patch_doc.insert("title", patch_json.title);
+        }
+
+        if !patch_json.image.is_empty() {
+            patch_doc.insert("image", patch_json.image);
+        }
+
+        if !patch_json.content.is_empty() {
+            patch_doc.insert("content", patch_json.content);
+        }
+
+        if !patch_json.summary.is_empty() {
+            patch_doc.insert("summary", patch_json.summary);
+        }
+
+        if !patch_json.collect_ids.is_empty() {
+            patch_doc.insert("collect_ids", patch_json.collect_ids);
+        }
+
+        if let Some(Value::Number(status)) = patch_json.extra.get("status") {
+            if let Some(status) = status.as_i64() {
+                patch_doc.insert("status", status as i32);
+            }
+        }
+
+        let article_id = ObjectId::with_string(&article_id)?;
+
+        if None == model::Article::patch(article_id, patch_doc)? {
+            return Err(ErrorCode(10004).into())
+        }
+
+        Ok(Response::<Empty>::success(None))
     }});
 
     // delete
@@ -193,6 +310,7 @@ impl Article {
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::new).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
+        group.patch("/{id:[a-z0-9]{24}}", Self::patch);
 
         group
     }

@@ -5,7 +5,6 @@ use mongors::bson::{self, Bson, Document};
 use mongors::database::Database;
 use mongors::bson::encode::EncodeError;
 use mongors::collection::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
-use mongors::common::WriteConcern;
 use mongors::collection::results::UpdateResult;
 use mongors::error::Error::WriteError;
 
@@ -31,7 +30,7 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         Ok(bson::decode::from_bson(bson::Bson::Document(doc))?)
     }
 
-    fn save(&self, write_concern: Option<WriteConcern>) -> Result<UpdateResult> {
+    fn save(&self) -> Result<UpdateResult> {
         let database = Self::get_database();
 
         let doc = self.to_document()?;
@@ -40,7 +39,6 @@ pub trait StructDocument: Serialize + DeserializeOwned {
 
         let options = UpdateOptions {
             upsert: Some(true),
-            write_concern: write_concern,
             ..Default::default()
         };
 

@@ -79,7 +79,7 @@ impl Auth {
             update_at: Utc::now().into()
         };
 
-        user.save(None)?;
+        user.save()?;
 
         Ok(Response::<Empty>::success(None))
     }});

@@ -99,7 +99,7 @@ impl Collect {
             update_at: Utc::now().into()
         };
 
-        collect.save(None)?;
+        collect.save()?;
 
         let return_json = json!({
             "collect_id": collect.id.to_hex()
@@ -134,7 +134,7 @@ impl Collect {
                 doc.image = update_json.image;
                 doc.update_at = Utc::now().into();
 
-                doc.save(None)?;
+                doc.save()?;
 
                 let return_json = json!({
                     "collect_id": collect_id
@@ -298,7 +298,7 @@ impl Collect {
                 article.collect_ids.push(collect_id.clone());
             }
 
-            article.save(None)?;
+            article.save()?;
         }
 
         Ok(Response::<Empty>::success(None))
@@ -332,7 +332,7 @@ impl Collect {
         for mut article in articles {
             article.collect_ids = article.collect_ids.into_iter().filter(|id| id != &collect_id).collect();
 
-            article.save(None)?;
+            article.save()?;
         }
 
         Ok(Response::<Empty>::success(None))

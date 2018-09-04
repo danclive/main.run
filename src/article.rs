@@ -45,14 +45,32 @@ impl Article {
         let mut articles_json = Vec::new();
 
         for article in articles {
-            articles_json.push(json!({
+            let mut article_json = json!({
                 "id": article.id.to_hex(),
                 "title": article.title,
                 "image": article.image,
                 "summary": article.summary,
+                "status": article.status,
                 "create_at": article.create_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string(),
                 "update_at": article.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
-            }));
+            });
+
+            if !article.collect_ids.is_empty() {
+                let collects = model::Collect::find(doc!{"_id": {"$in": article.collect_ids}}, None)?;
+
+                let mut collect_json = Vec::new();
+
+                for collect in  collects {
+                    collect_json.push(json!({
+                        "id": collect.id.to_hex(),
+                        "name": collect.name
+                    }))
+                }
+
+                article_json["collects"] = json!(collect_json);
+            }
+
+            articles_json.push(article_json);
         }
 
         let return_json = json!({
@@ -86,18 +104,20 @@ impl Article {
                     "update_at": doc.update_at.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string()
                 });
 
-                let collects = model::Collect::find(doc!{"articles_id": doc.id}, None)?;
+                if !doc.collect_ids.is_empty() {
+                    let collects = model::Collect::find(doc!{"_id": {"$in": doc.collect_ids}}, None)?;
 
-                let mut collect_json = Vec::new();
+                    let mut collect_json = Vec::new();
 
-                for collect in  collects {
-                    collect_json.push(json!({
-                        "id": collect.id.to_hex(),
-                        "name": collect.name
-                    }))
+                    for collect in  collects {
+                        collect_json.push(json!({
+                            "id": collect.id.to_hex(),
+                            "name": collect.name
+                        }))
+                    }
+
+                    return_json["collects"] = json!(collect_json);
                 }
-
-                return_json["collects"] = json!(collect_json);
 
                 Ok(Response::success(Some(return_json)))
             }

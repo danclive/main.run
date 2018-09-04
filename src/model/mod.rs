@@ -7,6 +7,8 @@ use serde_bytes;
 use struct_document::StructDocument;
 use DB;
 
+pub mod article;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Role {
     Admin,
@@ -43,6 +45,10 @@ pub struct Article {
     pub summary: String,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
+    // 0: publish
+    // 1: timing release
+    // 2: draft
+    // 3: delete
     pub status: i32
 }
 

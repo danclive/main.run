@@ -40,7 +40,7 @@ mod console;
 
 lazy_static! {
     static ref DB: Database = {
-        MongoClient::with_uri("mongodb://10.254.195.96:30000").expect("Failed to initialize client.").db("main-run")
+        MongoClient::with_uri("mongodb://danclive.com:30000").expect("Failed to initialize client.").db("main-run")
     };
 
     static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
