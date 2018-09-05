@@ -11,6 +11,7 @@ use mongors::bson::encode::EncodeError;
 use mongors::bson::decode::DecodeError;
 use mongors::object_id;
 use sincere_token;
+use reqwest;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -26,6 +27,7 @@ pub enum Error {
     BsonDecodeError(DecodeError),
     ParseIntError(num::ParseIntError),
     ObjectIdError(object_id::Error),
+    RewqestError(reqwest::Error),
     Message(String)
 }
 
@@ -89,6 +91,12 @@ impl From<object_id::Error> for Error {
     }
 }
 
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error {
+        Error::RewqestError(err)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -102,6 +110,7 @@ impl fmt::Display for Error {
             Error::BsonDecodeError(ref inner) => inner.fmt(fmt),
             Error::ParseIntError(ref inner) => inner.fmt(fmt),
             Error::ObjectIdError(ref inner) => inner.fmt(fmt),
+            Error::RewqestError(ref inner) => inner.fmt(fmt),
             Error::Message(ref inner) => inner.fmt(fmt)
         }
     }
@@ -120,6 +129,7 @@ impl error::Error for Error {
             Error::BsonDecodeError(ref err) => err.description(),
             Error::ParseIntError(ref err) => err.description(),
             Error::ObjectIdError(ref err) => err.description(),
+            Error::RewqestError(ref err) => err.description(),
             Error::Message(ref err) => err
         }
     }
@@ -136,6 +146,7 @@ impl error::Error for Error {
             Error::BsonDecodeError(ref err) => Some(err),
             Error::ParseIntError(ref err) => Some(err),
             Error::ObjectIdError(ref err) => Some(err),
+            Error::RewqestError(ref err) => Some(err),
             Error::Message(_) => None
         }
     }
@@ -150,6 +161,7 @@ impl ErrorCode {
             10004 => "资源不存在",
             10005 => "权限不足",
             10006 => "参数错误",
+            10007 => "文件格式错误",
             20001 => "登录信息已过期",
             20002 => "用户名或密码错误",
             20003 => "用户已存在",

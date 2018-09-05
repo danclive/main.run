@@ -63,6 +63,9 @@ pub struct Collect {
     pub image: Vec<String>,
     pub create_at: UTCDateTime,
     pub update_at: UTCDateTime,
+    // 0: publish
+    // 3: delete
+    pub status: i32
 }
 
 model!(Collect, "collect");

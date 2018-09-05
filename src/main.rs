@@ -32,7 +32,6 @@ mod util;
 mod article;
 mod collect;
 mod auth;
-mod media;
 mod middleware;
 mod struct_document;
 mod model;
@@ -77,8 +76,9 @@ fn start() -> App {
     app.mount_group(console::article::Article::handle());
 
     app.mount_group(collect::Collect::handle());
+    app.mount_group(console::collect::Collect::handle());
 
-    app.mount_group(media::Media::handle());
+    app.mount_group(console::media::Media::handle());
 
     app.middleware(middleware::cors);
 

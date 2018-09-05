@@ -7,6 +7,7 @@ use mongors::bson::encode::EncodeError;
 use mongors::collection::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
 use mongors::collection::results::UpdateResult;
 use mongors::error::Error::WriteError;
+use mongors::object_id::ObjectId;
 
 use error::Result;
 
@@ -119,5 +120,13 @@ pub trait StructDocument: Serialize + DeserializeOwned {
         let database = Self::get_database();
 
         Ok(database.collection(Self::NAME).distinct(field_name, filter, options)?)
+    }
+
+    fn patch(id: ObjectId, doc: Document) -> Result<Option<Document>> {
+        let database = Self::get_database();
+
+        let result = database.collection(Self::NAME).find_one_and_update(doc!{"_id": id}, doc!{"$set": doc}, None)?;
+
+        Ok(result)
     }
 }

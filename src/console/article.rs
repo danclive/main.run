@@ -43,9 +43,9 @@ impl Article {
         article_find_option.limit = Some(per_page);
         article_find_option.skip = Some((page - 1) * per_page);
 
-        let articles = model::Article::find(article_find, Some(article_find_option))?;
+        let articles = model::Article::find(article_find.clone(), Some(article_find_option))?;
 
-        let articles_count = model::Article::count(doc!{}, None)?;
+        let articles_count = model::Article::count(article_find, None)?;
 
         let mut articles_json = Vec::new();
 
@@ -61,7 +61,7 @@ impl Article {
             });
 
             if !article.collect_ids.is_empty() {
-                let collects = model::Collect::find(doc!{"_id": {"$in": article.collect_ids}}, None)?;
+                let collects = model::Collect::find(doc!{"_id": {"$in": article.collect_ids}, "status": 0}, None)?;
 
                 let mut collect_json = Vec::new();
 
@@ -110,7 +110,7 @@ impl Article {
                 });
 
                 if !doc.collect_ids.is_empty() {
-                    let collects = model::Collect::find(doc!{"_id": {"$in": doc.collect_ids}}, None)?;
+                    let collects = model::Collect::find(doc!{"_id": {"$in": doc.collect_ids}, "status": 0}, None)?;
 
                     let mut collect_json = Vec::new();
 
@@ -172,7 +172,7 @@ impl Article {
             summary: new_json.summary,
             create_at: Utc::now().into(),
             update_at: Utc::now().into(),
-            status: 0
+            status: new_json.status
         };
 
         article.save()?;
@@ -228,6 +228,7 @@ impl Article {
                 doc.summary = update_json.summary;
                 doc.collect_ids = collect_ids;
                 doc.update_at = Utc::now().into();
+                doc.status = update_json.status;
 
                 doc.save()?;
 
@@ -262,8 +263,6 @@ impl Article {
 
         let patch_json = context.request.bind_json::<Patch>()?;
 
-        println!("{:?}", patch_json);
-
         let mut patch_doc = doc!{};
 
         if !patch_json.title.is_empty() {
@@ -292,13 +291,19 @@ impl Article {
             }
         }
 
-        let article_id = ObjectId::with_string(&article_id)?;
+        if !patch_doc.is_empty() {
+            patch_doc.insert("update_at", Utc::now());
+        }
 
-        if None == model::Article::patch(article_id, patch_doc)? {
+        if None == model::Article::patch(ObjectId::with_string(&article_id)?, patch_doc)? {
             return Err(ErrorCode(10004).into())
         }
 
-        Ok(Response::<Empty>::success(None))
+        let return_json = json!({
+            "article_id": article_id
+        });
+
+        Ok(Response::success(Some(return_json)))
     }});
 
     // delete
@@ -310,7 +315,7 @@ impl Article {
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::new).before(middleware::auth);
         group.put("/{id:[a-z0-9]{24}}", Self::update).before(middleware::auth);
-        group.patch("/{id:[a-z0-9]{24}}", Self::patch);
+        group.patch("/{id:[a-z0-9]{24}}", Self::patch).before(middleware::auth);
 
         group
     }
