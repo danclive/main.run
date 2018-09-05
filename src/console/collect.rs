@@ -36,6 +36,10 @@ impl Collect {
 
         let mut collect_find_option = FindOptions::default();
 
+        collect_find_option.sort = Some(doc!{
+            "_id": -1
+        });
+
         collect_find_option.limit = Some(per_page);
         collect_find_option.skip = Some((page - 1) * per_page);
 

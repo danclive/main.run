@@ -37,7 +37,7 @@ impl Article {
         let mut article_find_option = FindOptions::default();
 
         article_find_option.sort = Some(doc!{
-            "_id": (-1)
+            "_id": -1
         });
 
         article_find_option.limit = Some(per_page);

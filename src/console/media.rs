@@ -23,6 +23,8 @@ use model;
 use struct_document::StructDocument;
 use error::ErrorCode;
 
+const STATIC_DOMINE: &str = "https://cdn.danclive.com/";
+
 pub struct Media;
 
 impl Media {
@@ -40,13 +42,57 @@ impl Media {
         let mut media_find_option = FindOptions::default();
 
         media_find_option.sort = Some(doc!{
-            "_id": (-1)
+            "_id": -1
         });
 
         media_find_option.limit = Some(per_page);
         media_find_option.skip = Some((page - 1) * per_page);
-        
-        return Err(ErrorCode(10006).into())
+
+        let medias = model::Media::find(media_find.clone(), Some(media_find_option))?;
+
+        let media_count = model::Media::count(media_find, None)?;
+
+        let mut medias_json = Vec::new();
+
+        for media in medias {
+            medias_json.push(json!({
+                "id": media.id.to_hex(),
+                "filename": media.filename,
+                "filesize": media.filesize,
+                "width": media.width,
+                "height": media.height,
+                "url": format!("{}{}/{}.{}", STATIC_DOMINE, "upload", media.hash, media.extension)
+            }));
+        }
+
+        let return_json = json!({
+            "medias": medias_json,
+            "count": media_count
+        });
+
+        Ok(Response::success(Some(return_json)))
+    }});
+
+    hand!(detail, {|context: &mut Context| {
+        let media_id = context.request.param("id").unwrap();
+
+        let media = model::Media::find_by_id(ObjectId::with_string(&media_id)?, None, None)?;
+
+        match media {
+            None => return Err(ErrorCode(10004).into()),
+            Some(doc) => {
+                let return_json = json!({
+                    "id": doc.id.to_hex(),
+                    "filename": doc.filename,
+                    "filesize": doc.filesize,
+                    "width": doc.width,
+                    "height": doc.height,
+                    "url": format!("{}{}/{}.{}", STATIC_DOMINE, "upload", doc.hash, doc.extension)
+                });
+
+                Ok(Response::success(Some(return_json)))
+            }
+        }
     }});
 
     hand!(upload, {|context: &mut Context| {
@@ -72,7 +118,7 @@ impl Media {
 
                 return_json.push(json!({
                     "id": media.id.to_hex(),
-                    "url": "https://cdn1.01io.com/".to_owned() + &file.key
+                    "url": STATIC_DOMINE.to_owned() + &file.key
                 }));
             }
 
@@ -87,9 +133,8 @@ impl Media {
         let mut group = Group::new("console/media");
 
         group.get("/", Self::medias);
-        //group.get("/{id:[a-z0-9]{24}}", Self::detail);
+        group.get("/{id:[a-z0-9]{24}}", Self::detail);
         group.post("/", Self::upload).before(middleware::auth);
-
 
         group
     }
@@ -118,7 +163,7 @@ fn upload_file(files: &Vec<FilePart>) -> Result<Vec<File>> {
 
     // new config and put policy
     let config = Config::new(ACCESS_KEY, SECRET_KEY);
-    let mut put_policy = PutPolicy::new("scene", (timestamp + 3600) as u32);
+    let mut put_policy = PutPolicy::new("main-run", (timestamp + 3600) as u32);
 
     // set return body
     let return_body = r#"{"key": $(key), "hash": $(etag), "filename": $(fname), "filesize": $(fsize), "mime_type": $(mimeType), "extension": $(ext), "width": $(imageInfo.width), "height": $(imageInfo.height)}"#;
