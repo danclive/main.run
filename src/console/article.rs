@@ -26,13 +26,18 @@ impl Article {
     hand!(articles, {|context:  &mut Context| {
         let page = context.request.query("page").unwrap_or("1".to_owned());
         let per_page = context.request.query("per_page").unwrap_or("10".to_owned());
+        let status = context.request.query("status");
 
         let page = i64::from_str(&page)?;
         let per_page = i64::from_str(&per_page)?;
 
-        let article_find = doc!{
+        let mut article_find = doc!{
             "status": { "$lte": 2 }
         };
+
+        if let Some(status) = status {
+            article_find.insert("status", i32::from_str(&status)?);
+        }
 
         let mut article_find_option = FindOptions::default();
 

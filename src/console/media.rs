@@ -61,7 +61,7 @@ impl Media {
                 "filesize": media.filesize,
                 "width": media.width,
                 "height": media.height,
-                "url": format!("{}{}/{}.{}", STATIC_DOMINE, "upload", media.hash, media.extension)
+                "url": format!("{}{}/{}{}", STATIC_DOMINE, "upload", media.hash, media.extension)
             }));
         }
 
@@ -87,7 +87,7 @@ impl Media {
                     "filesize": doc.filesize,
                     "width": doc.width,
                     "height": doc.height,
-                    "url": format!("{}{}/{}.{}", STATIC_DOMINE, "upload", doc.hash, doc.extension)
+                    "url": format!("{}{}/{}{}", STATIC_DOMINE, "upload", doc.hash, doc.extension)
                 });
 
                 Ok(Response::success(Some(return_json)))
@@ -130,11 +130,11 @@ impl Media {
 
     pub fn handle() -> Group {
 
-        let mut group = Group::new("console/media");
+        let mut group = Group::new("/console/media");
 
         group.get("/", Self::medias);
         group.get("/{id:[a-z0-9]{24}}", Self::detail);
-        group.post("/", Self::upload).before(middleware::auth);
+        group.post("/", Self::upload);
 
         group
     }
@@ -186,8 +186,6 @@ fn upload_file(files: &Vec<FilePart>) -> Result<Vec<File>> {
         let form = Form::new().text("token", token.clone()).part("file", part);
         // send file
         let mut response = HTTP_CLIENT.post("http://upload.qiniup.com/").multipart(form).send()?;
-
-        println!("{:?}", response);
 
         if response.status() != StatusCode::Ok {
             //return Err(ErrorCode(10007).into())
