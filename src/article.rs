@@ -38,9 +38,9 @@ impl Article {
         article_find_option.limit = Some(per_page);
         article_find_option.skip = Some((page - 1) * per_page);
 
-        let articles = model::Article::find(article_find, Some(article_find_option))?;
+        let articles = model::Article::find(article_find.clone(), Some(article_find_option))?;
 
-        let articles_count = model::Article::count(doc!{}, None)?;
+        let articles_count = model::Article::count(article_find, None)?;
 
         let mut articles_json = Vec::new();
 
