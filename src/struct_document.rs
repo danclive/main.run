@@ -1,15 +1,16 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use mongors::bson::{self, Bson, Document};
+use mongors::bson::{Bson, Document};
 use mongors::database::Database;
 use mongors::bson::encode::EncodeError;
 use mongors::collection::options::{FindOptions, UpdateOptions, CountOptions, AggregateOptions, DistinctOptions};
 use mongors::collection::results::UpdateResult;
 use mongors::error::Error::WriteError;
 use mongors::object_id::ObjectId;
+use mongors::{doc, bson};
 
-use error::Result;
+use crate::error::Result;
 
 pub trait StructDocument: Serialize + DeserializeOwned {
 

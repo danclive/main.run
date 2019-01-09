@@ -4,15 +4,19 @@ use ring::digest::{self, SHA256};
 
 use mongors::bson::spec::BinarySubtype;
 use mongors::object_id::ObjectId;
+use mongors::{doc, bson};
 
 use chrono::Utc;
 
-use common::{Response, Empty};
-use util::token;
-use error::ErrorCode;
+use serde_derive::Deserialize;
+use serde_json::json;
 
-use model;
-use struct_document::StructDocument;
+use crate::common::{Response, Empty};
+use crate::util::token;
+use crate::error::ErrorCode;
+
+use crate::model;
+use crate::struct_document::StructDocument;
 
 #[derive(Deserialize, Debug)]
 struct Login {

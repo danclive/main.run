@@ -5,8 +5,8 @@ use sincere::log::color::{Print, Color};
 
 use chrono::{Local, Utc, DateTime};
 
-use util::token;
-use common::{Response, Empty};
+use crate::util::token;
+use crate::common::{Response, Empty};
 
 pub fn auth(context: &mut Context) {
     if let Some(token) = context.request.header("Token") {
@@ -38,8 +38,11 @@ pub fn cors(app: &mut App) {
     });
 
     app.finish(move |context| {
+        let origin = context.request.header("Origin").unwrap_or("*".to_string());
+
         context.response
-        .header(("Access-Control-Allow-Origin", "*"))
+        .header(("Access-Control-Allow-Origin", &origin))
+        .header(("Access-Control-Allow-Credentials", "true"))
         .header(("Access-Control-Allow-Headers", "content-type, token"));
     });
 }

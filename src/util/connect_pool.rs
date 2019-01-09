@@ -2,7 +2,7 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::ops::Deref;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub static DEFAULT_POOL_SIZE: usize = 5;
 

@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! hand {
     ($name:ident, $body:block) => {
-        pub fn $name(mut context: &mut $crate::sincere::app::context::Context) {
+        pub fn $name(mut context: &mut sincere::app::context::Context) {
             let result = {
 
                 let h = $body;

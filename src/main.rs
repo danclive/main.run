@@ -1,21 +1,4 @@
-#[macro_use]
-extern crate sincere;
-extern crate sincere_token;
-#[macro_use]
-extern crate mongors;
-#[macro_use]
-extern crate lazy_static;
-extern crate serde;
-#[macro_use]
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_bytes;
-extern crate ring;
-extern crate chrono;
-extern crate postgres;
-extern crate reqwest;
-extern crate qiniu;
+use lazy_static::lazy_static;
 
 use sincere::app::App;
 use sincere::app::run;

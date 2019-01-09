@@ -5,7 +5,7 @@ use std::ops::Deref;
 use postgres::Connection;
 use postgres::TlsMode;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub static DEFAULT_POOL_SIZE: usize = 5;
 

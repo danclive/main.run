@@ -7,23 +7,26 @@ use sincere::http::plus::random_alphanumeric;
 
 use mongors::object_id::ObjectId;
 use mongors::collection::options::FindOptions;
+use mongors::{doc, bson};
 
 use chrono::{Utc};
+
+use serde_derive::{Serialize, Deserialize};
+use serde_json::json;
 
 use qiniu::{Config, PutPolicy};
 
 use reqwest::multipart::{Form, Part};
 use reqwest::StatusCode;
 
-use HTTP_CLIENT;
-use error::Result;
-use common::{Response, Empty};
-use middleware;
-use model;
-use struct_document::StructDocument;
-use error::ErrorCode;
+use crate::HTTP_CLIENT;
+use crate::error::Result;
+use crate::common::{Response, Empty};
+use crate::model;
+use crate::struct_document::StructDocument;
+use crate::error::ErrorCode;
 
-const STATIC_DOMINE: &str = "https://cdn.danclive.com/";
+const STATIC_DOMINE: &str = "https://cdn2.danclive.com/";
 
 pub struct Media;
 
@@ -163,7 +166,7 @@ fn upload_file(files: &Vec<FilePart>) -> Result<Vec<File>> {
 
     // new config and put policy
     let config = Config::new(ACCESS_KEY, SECRET_KEY);
-    let mut put_policy = PutPolicy::new("main-run", (timestamp + 3600) as u32);
+    let mut put_policy = PutPolicy::new("cdn2", (timestamp + 3600) as u32);
 
     // set return body
     let return_body = r#"{"key": $(key), "hash": $(etag), "filename": $(fname), "filesize": $(fsize), "mime_type": $(mimeType), "extension": $(ext), "width": $(imageInfo.width), "height": $(imageInfo.height)}"#;

@@ -1,6 +1,7 @@
 use serde::Serialize;
+use serde_derive::Serialize;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Serialize, Debug)]
 pub struct Message {
@@ -27,6 +28,7 @@ impl<D: Serialize> Response<D> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn from_message(message: Message) -> Response<D> {
         Response {
             success: false,
